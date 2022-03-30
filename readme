@@ -1,0 +1,18 @@
+
+-cahier des charge
+
+truc a faire:
+
+
+    1-codage, sauvegarde et chargement d’une matrice à valeurs entières,
+    2-choix d’un point de départ et d’un point d’arrivée,
+    3-application des algorithmes de Dijkstra et A* et mémorisation des résultats,
+
+    5-déplacement d’un mobile le long des chemins trouvés (de préférence sous la forme d’un ver) dont les mouvements seront calculés par l’intermédiaire d’une courbe de Bézier cubique,
+
+  	bonus+16
+		6-gestion de la caméra,
+    7-plaquage de textures (terrain, ver),
+
+fait :
+4-affichage de la matrice sous la forme d’un terrain en élévation, 100%
