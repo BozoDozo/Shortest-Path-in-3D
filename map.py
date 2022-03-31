@@ -86,7 +86,6 @@ def generation_matrice(n):
 
 
 def clipping_voisin(matrice, i, j, rayon=1):
-
     """
 
     Clipping voisin d'un point avec un rayon carré
@@ -161,7 +160,7 @@ def tukey(matrice, rayon=1):
 
 def median(vec):
     """
-    Renvoie la valeur médiane d'une liste de donnée
+    Renvoie la valeur médiane d'une liste de données
     """
     n = len(vec)
     vec.sort()
@@ -169,8 +168,9 @@ def median(vec):
     #Verification de la parité
     if n&1:
         return vec[n//2]
+
     else:
-        return ((vec[n//2-1) + vec[n//2]) // 2
+        return ((vec[n//2-1] + vec[n//2]) // 2)
 
 
 
@@ -334,16 +334,3 @@ def grid_map(matrice_map):
     gestion_poly_trx(matrice_map)
     gestion_poly_try(matrice_map)
     gestion_poly_tr_trigd(matrice_map)
-
-
-
-Mat = [[1, 2, 3],
-      [4, 5, 6],
-      [7, 8, 9]]
-
-
-
-
-#M1 = tukey(Mat)
-
-print(clipping_voisin(t, 0,0, 1))

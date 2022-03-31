@@ -25,7 +25,8 @@ quadric = None
 DISPLAY_GRID = False
 ############################################################## #
 
-matrice_map = generation_matrice(20)
+matrice_map = generation_matrice(30)
+matrice_map = tukey(matrice_map, 2)
 
 def init():
     global quadric
