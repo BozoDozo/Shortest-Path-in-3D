@@ -7,11 +7,11 @@ from map import *
 
 ###############################################################
 # Variables Globales
-
+cpt=1
 #postitionement
-x_pos, y_pos, z_pos = 0, 0, 5
+x_pos, y_pos, z_pos = 0, 0, 0
 
-eye_angle_x, eye_angle_y, eye_angle_z = 0, 0, 0
+eye_angle_x, eye_angle_y, eye_angle_z = 180, 0, 0
 eye = [0, 0, 10]
 center = [0,0,0]
 up_vec = [1,1,0]
@@ -19,14 +19,14 @@ up_vec = [1,1,0]
 #Couleurs
 diffuse = [0.7, 0.7, 0.7, 1.0]
 specular = [0.001, 0.001, 0.001, 1.0]
-pos = [1, 1, 1, 0]
+pos = [1, 1, -1, 0]
 
 quadric = None
 DISPLAY_GRID = False
 ############################################################## #
 
-matrice_map = generation_matrice(20)
-matrice_map=tukey(matrice_map)
+matrice_map = generation_matrice(10)
+#matrice_map=tukey(matrice_map)
 def init():
     global quadric
     # clear color to black
@@ -49,7 +49,7 @@ def init():
 
 
 def display():
-
+    global cpt
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     glPushMatrix()
@@ -72,13 +72,26 @@ def display():
 
     #Axe x Rouge
     glPushMatrix()
-    glRotatef(90, 1, 0, 0)
+    glRotatef(-90, 1, 0, 0)
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, [1, 0, 0, 1.0])
     gluCylinder(quadric, 0.1, 0.1, 1000, 20, 16);
     glPopMatrix()
 
     #creation de la map
     grid_map(matrice_map)
+    cpt=cpt+0.01
+    glBegin(GL_POLYGON)
+                #00 01
+    glVertex3f(0, 0, cpt)
+    glVertex3f(0, 5, cpt)
+
+    glVertex3f(0, 5, cpt)
+    glVertex3f(5, 5, cpt)
+
+    glVertex3f(5, 5,cpt)
+    glVertex3f(0, 0, cpt)
+
+    glEnd()
     glPopMatrix()
 
     glutSwapBuffers()
@@ -86,7 +99,7 @@ def display():
     glLoadIdentity()
 
     gluLookAt(*eye,*center,*up_vec)
-    glRotatef(eye_angle_y, 0.0, 1.0, 0.0)
+    glRotatef(eye_angle_y, 0.0, 0.0, 0.0)
     glRotatef(eye_angle_x, 1.0, 0, 0)
     glRotatef(eye_angle_z, 0, 0, 1.0)
 
@@ -102,11 +115,11 @@ def reshape(width, height):
 
 def keyboard(key, x, y):
     global DISPLAY_GRID, eye_angle_x, eye_angle_y, eye_angle_z, center,up_vec
-
+    global pos
     if key == b'g':
             DISPLAY_GRID = not DISPLAY_GRID
 
-    #Zoom deplacement de la camera selon l'axe z
+    #Zoom deplacement de la cam era selon l'axe z
     elif key == b'z':
         eye[2]-=1
 
@@ -151,6 +164,8 @@ def keyboard(key, x, y):
 
     elif key == b'D':
         eye_angle_x = (eye_angle_x - 5) % 360
+
+
 # faire transaltion
 
     elif key == b'\033':
@@ -158,7 +173,6 @@ def keyboard(key, x, y):
         sys.exit(0)
     glutPostRedisplay()  # indispensable en Python
     print(eye)
-
 
 ###############################################################
 # MAIN
