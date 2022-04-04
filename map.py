@@ -244,6 +244,7 @@ def gestion_poly_trx(matrice):
                 glVertex3f(j*ecartx+2, i*ecarty, matrice[i][j+1]);
                 glVertex3f(j*ecartx+1, i*ecarty, matrice[i][j]);
                 glEnd()
+        
 def gestion_poly_try(matrice):
         #faire les poly separer
         #recuperation de la longeur
