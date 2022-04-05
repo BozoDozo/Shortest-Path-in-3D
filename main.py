@@ -11,8 +11,8 @@ cpt=1
 #postitionement
 x_pos, y_pos, z_pos = 0, 0, 0
 
-eye_angle_x, eye_angle_y, eye_angle_z = 180, 0, 0
-eye = [0, 0, 10]
+eye_angle_x, eye_angle_y, eye_angle_z = 300, 50, 300
+eye = [0, 0, 50]
 center = [0,0,0]
 up_vec = [1,1,0]
 
@@ -26,6 +26,7 @@ DISPLAY_GRID = False
 ############################################################## #
 
 matrice_map = generation_matrice(10)
+matrice_map = tukey(matrice_map, 2)
 #matrice_map=tukey(matrice_map)
 def init():
     global quadric
@@ -79,19 +80,8 @@ def display():
 
     #creation de la map
     grid_map(matrice_map)
-    cpt=cpt+0.01
-    glBegin(GL_POLYGON)
-                #00 01
-    glVertex3f(0, 0, cpt)
-    glVertex3f(0, 5, cpt)
-
-    glVertex3f(0, 5, cpt)
-    glVertex3f(5, 5, cpt)
-
-    glVertex3f(5, 5,cpt)
-    glVertex3f(0, 0, cpt)
-
-    glEnd()
+    cpt=cpt+0.1
+    animation(cpt)
     glPopMatrix()
 
     glutSwapBuffers()
@@ -164,6 +154,8 @@ def keyboard(key, x, y):
 
     elif key == b'D':
         eye_angle_x = (eye_angle_x - 5) % 360
+    elif key == b'a':
+            print("animation")
 
 
 # faire transaltion

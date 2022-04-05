@@ -13,6 +13,9 @@ truc a faire:
 		6-gestion de la caméra,
     7-plaquage de textures (terrain, ver),
 
+a faire :
+tracer dik
+
 fait :
 4-affichage de la matrice sous la forme d’un terrain en élévation, 100%
 3-application des algorithmes de Dijkstra et A* et mémorisation des résultats,

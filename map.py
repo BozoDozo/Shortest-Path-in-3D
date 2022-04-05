@@ -9,88 +9,102 @@ from dijkstra import *
 
 
 def generation_matrice(n):
-    #generation& d'une liste nxn avec nombre alea*
-    #nombre de 1 a 10
+    """generation& d'une matrice nxn avec des nombres alea*
+    nombre de 1 a 10"""
     map=[]
 
     for i in range(n):
         ligne=[]
         for j in range(n):
-            nb=0
+            nb=randint(1,10)
             ligne.append(nb)
 
         map.append(ligne)
-    """ map projet"""
-    map=[[0,5,11,13,16,5,4,19,10,18],[16,1,6,17,2,7,1,15,16,4],[4,8,23,23,11,8,4,16,11,1],[1,13,3,17,11,9,14,8,3,5],[3,16,11,13,1,3,12,14,12,13],[1,3,5,16,7,6,15,15,14,3],[12,18,4,15,16,8,16,17,4,1],[12,5,15,10,9,19,18,7,4,7],[17,3,14,16,5,14,3,19,4,19],[2,11,18,10,19,2,19,13,19,0]]
+    """ map sujet projet"""
+    #map=[[0,5,11,13,16,5,4,19,10,18],[16,1,6,17,2,7,1,15,16,4],[4,8,23,23,11,8,4,16,11,1],[1,13,3,17,11,9,14,8,3,5],[3,16,11,13,1,3,12,14,12,13],[1,3,5,16,7,6,15,15,14,3],[12,18,4,15,16,8,16,17,4,1],[12,5,15,10,9,19,18,7,4,7],[17,3,14,16,5,14,3,19,4,19],[2,11,18,10,19,2,19,13,19,0]]
 
     return map
+""" --------------------------moyyennage---------------------------------"""
 
-#------------------------------------------
-def median(matrice,j,i):
-    nb=[]
-    cpth=0
-    cptb=0
-    n=len(matrice)
-    #poly ou on est
-    nb.append(matrice[j][i])
-    if i-1>=0:
+def clipping_voisin(matrice, i, j, rayon=1):
+    """
+    Clipping voisin d'un point avec un rayon carré
+    --------------
+    |     _______o_____
+    |     | o    |    |
+    |     |(i,j) |    |
+    ------o-------    |
+          |___________|
+    Le point courant definit un carré autour de lui,
+    trouver les points d'intersections
+    Cas idéal pas d'intersection
+    point haut : (i-rayon, j+rayon)
+    point bas : (i+rayon, j-rayon)
+    """
+    n = len(matrice)
+    vec = []
 
-        #poly de gauche
-        nb.append(matrice[j][i-1])
-        if j-1>=0:
+    #Point d'intersection haut
+    diag_haut_x = i - rayon
+    if(diag_haut_x < 0):
+        diag_haut_x = 0
 
-            #diago et en bas
-            nb.append(matrice[j-1][i-1])
-            nb.append(matrice[j-1][i])
-            cptb=1
-        if j+1<n:
+    diag_haut_y = j + rayon
+    if(diag_haut_y >= n):
+        diag_haut_y = n-1
 
-            #diago et en haut*
-            nb.append(matrice[j+1][i-1])
-            nb.append(matrice[j+1][i])
-            cpth=1
-    if i+1<n:
-        #poly de droit
 
-        nb.append(matrice[j][i+1])
-        if j-1>=0:
+    #Point d'intersection bas
+    diag_bas_x = i + rayon
+    if(diag_bas_x >= n):
+        diag_bas_x = n-1
 
-            #diago et en bas
-            nb.append(matrice[j-1][i+1])
+    diag_bas_y = j - rayon
+    if(diag_bas_y < 0):
+        diag_bas_y = 0
 
-            if cptb==0:
-                nb.append(matrice[j-1][i])
-        if j+1<n:
+    #On parcours de gauche à droite puis de haut en bas le quadrilatère
+    #formé par les deux points d'intersections
+    for k in range(diag_haut_x, diag_bas_x+1):
+        for l in range(diag_bas_y, diag_haut_y+1):
+            vec.append(matrice[k][l])
 
-            #diago et en haut
-            nb.append(matrice[j+1][i+1])
-            if cpth==0:
-                nb.append(matrice[j+1][i])
-    nb.sort()
-    if len(nb)%2==0:
-        nombre=nb[len(nb)//2]
+    return vec
+
+def tukey(matrice, rayon=1):
+    """
+    Renvoie une matrice bruite avec le bruit de tukey
+    possibilite de mettre un rayon
+    """
+    n = len(matrice)
+
+    #Initialisaton d'un matrice receptrice
+    mat_median = [[0 for x in range(n)] for y in range (n)]
+
+
+    for i in range(n):
+        for j in range(n):
+            mat_median[i][j] = median(clipping_voisin(matrice, i, j, rayon))
+
+
+    return mat_median
+
+def median(vec):
+    """
+    Renvoie la valeur médiane d'une liste de données
+    """
+    n = len(vec)
+    vec.sort()
+
+    #Verification de la parité
+    if n&1:
+        return vec[n//2]
+
     else:
-        nombre=nb[(len(nb)//2)+1]
-    return nombre
-
-def tukey(matrice):
-    n=len(matrice)
-    matrice_b=[]
+        return ((vec[n//2-1] + vec[n//2]) // 2)
 
 
-    for j in range(n):
-        ligne=[]
-        for i in range(n):
-            nb=median(matrice,j,i)
-
-            ligne.append(nb)
-        matrice_b.append(ligne)
-    print(matrice,"\n\n",matrice_b)
-    return matrice_b
-#--------------------------------------
-
-
-
+"""-------------------creation de poly ------------------"""
 
 def gestion_poly(matrice):
     #faire les poly separer
@@ -245,21 +259,51 @@ def gestion_poly_tr_trigd(matrice):
 
                 glEnd()
 def tracer_dijkstra(liste,matrice):
+    cpt=0
+    n=len(matrice)
+    while cpt<len(liste)-2:
+        #point de depart segment
+        i_a=liste[cpt]//n
+        j_a=liste[cpt]%n
+        z_a=matrice[i_a][j_a]
+        #point arrive segment
+        i_b=liste[cpt]//n
+        j_b=liste[cpt]%n
+        z_b=matrice[i_a][j_a]
 
-    print("toto")
+        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, [0, 1, 1, 1])
+        glBegin(GL_POLYGON)
+        glVertex3f(j_a, i_a, 0)
+        glVertex3f(j_a, i_a+1, 0)
+
+        glVertex3f(j_a, i_a+1, 0)
+        glVertex3f(j_b, i_b+1, 0)
+
+        glVertex3f(j_b, i_b+1, 0)
+        glVertex3f(j_b, i_b, 0)
+
+        glVertex3f(j_b, i_b, 0)
+        glVertex3f(j_a, i_a, 0)
+
+        glEnd()
+        #pour passe au prochain segment
+        cpt=cpt+1
 
 
+
+def animation(cpt):
+    glTranslated(0,0,10+cpt)
+    glutSolidSphere(1,10,10)
 
 def grid_map(matrice_map):
-    #generation poly separe
+    """generation poly separe"""
     gestion_poly(matrice_map)
-    #generation poly transi
+    """generation poly transi"""
     gestion_poly_trx(matrice_map)
     gestion_poly_try(matrice_map)
     gestion_poly_tr_trigd(matrice_map)
 
-    #TRACER dijkstra
-    liste=djikstra(matrice_map,0,99)
-    print("liste",liste)
 
-    #tracer_dijkstra(liste,matrice_map)
+    """TRACER dijkstra"""
+    liste=djikstra(matrice_map,0,99)
+    tracer_dijkstra(liste,matrice_map)
