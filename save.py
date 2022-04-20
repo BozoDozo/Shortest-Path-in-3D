@@ -1,10 +1,4 @@
 
-
-
-import readline
-from typing import List
-
-
 def ecrire_matrice(mat: list[list[int]], path: str = "output.txt") :
     """
     Ecrit une matrice dans un fichier texte avec le formatage 
