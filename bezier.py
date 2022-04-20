@@ -43,6 +43,7 @@ def trace_beizier_quatre(x0, y0, x1, y1, x2, y2, x3, y3, it, debut=0):
     """
 
     u = debut
+    pas = 1/it
     while(u < 1):
         xi, yi = bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,u)
         #Tracer OpenGL le point xi, yi
