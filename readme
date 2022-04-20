@@ -4,18 +4,21 @@
 truc a faire:
 
 
-    1-codage, sauvegarde et chargement d’une matrice à valeurs entières,
-    2-choix d’un point de départ et d’un point d’arrivée,
-
-    5-déplacement d’un mobile le long des chemins trouvés (de préférence sous la forme d’un ver) dont les mouvements seront calculés par l’intermédiaire d’une courbe de Bézier cubique,
+    1    codage, sauvegarde et chargement d’une matrice à valeurs entières,
+    4    déplacement d’un mobile le long de l’un des chemins trouvés au choix (de préférence sous la forme d’un ver, sinon modélisé par une simple sphère) dont les mouvements seront calculés par l’intermédiaire d’une succession de courbes de Bézier cubique,
+    5    ajout d’un obstacle infranchissable dans la génération du terrain et pris en compte par les algorithmes de recherche de chemin,
 
   	bonus+16
-		6-gestion de la caméra,
-    7-plaquage de textures (terrain, ver),
+    7représentation des obstacles infranchissables sous la forme de zones aquatiques
+    6    gestion d’une caméra offrant une vue générale et des mouvements en translation, rotation et zoom (sans utiliser glutSpaceball*),
+    8    suivi du mouvement du mobile par la caméra durant son parcours du chemin,
+    9    application de textures (terrain et mobile).
 
 a faire :
 tracer dik
 
 fait :
-4-affichage de la matrice sous la forme d’un terrain en élévation, 100%
-3-application des algorithmes de Dijkstra et A* et mémorisation des résultats,
+
+
+2    choix d’un point de départ et d’un point d’arrivée, application des algorithmes de Dijkstra et A* et mémorisation des résultats,
+3    affichage de la matrice sous la forme d’un terrain en élévation,
