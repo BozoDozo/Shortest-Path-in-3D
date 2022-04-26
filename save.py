@@ -1,7 +1,8 @@
+from typing import List
 
-def ecrire_matrice(mat: list[list[int]], path: str = "output.txt") :
+def ecrire_matrice(mat: List[List[int]], path: str = "output.txt") :
     """
-    Ecrit une matrice dans un fichier texte avec le formatage 
+    Ecrit une matrice dans un fichier texte avec le formatage
     suivant:
     chaque ligne de la matrice est représenté par une ligne
     dans le texte avec chaque élément séparé d'un espace
@@ -13,10 +14,8 @@ def ecrire_matrice(mat: list[list[int]], path: str = "output.txt") :
             f.write(f"{nb} ")
         #On saute la ligne pour passer a la nouvelle
         f.write('\n')
-    
-    return 1
 
-def lire_matrice(path: str = "output.txt"):
+def lire_matrice(path: str = "output.txt") -> List[List[int]]:
     """
     Lit un fichier écrit par la fonction ecrire_matrice et renvoie
     la matrice avec les valeurs associés
@@ -24,10 +23,9 @@ def lire_matrice(path: str = "output.txt"):
     f = open(path, 'r')
     #On parcours toute les lignes du fichiers textes on enlève de la
     #la ligne le dernier élément qui est \n, on transforme la ligne
-    #en une liste de chaîne de caractères qu'on map dont on map chaque
-    #élément au type entier et on transforme l'objet map en liste
-    #En faisant celà pour chaque ligne on obtient une matrice
-    #return [list(map(int,n[:-1].split())) for n in f.readlines()]
+    #en une liste de chaîne de caractères si un élément est égal alors "inf"
+    #On le transforme en un objet flottant inf sinon on transforme le nombre
+    #en valeurs entières
     mat =[n[:-1].split() for n in f.readlines()]
     l = len(mat)
     c = len(mat[0])
@@ -45,7 +43,3 @@ if __name__ == "__main__":
     mat = [[1,2,33],[4,58,float('inf')],[7,8,9]]
     ecrire_matrice(mat,"test.txt")
     print(mat == lire_matrice("test.txt"))
-    
-
-
-    

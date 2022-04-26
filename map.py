@@ -4,24 +4,42 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from math import sin, cos
 import sys
-from random import *
+from random import randint
+from typing import List, Union
 
-def generation_matrice(n):
-    #generation& d'une liste nxn avec nombre alea*
-    #nombre de 1 a 10
-    map=[]
-
-    for i in range(n):
-        ligne=[]
-        for j in range(n):
-            nb=randint(1,10)
-            ligne.append(nb)
-
-        map.append(ligne)
-    return map
+def min_matrix(matrice: List[List[int]]) -> Union[int, float]:
+    """
+    Retourne la valeur minimale d'une matrice
+    """
+    val_min = float("inf")
+    for ligne in matrice:
+        min_cour = max(ligne)
+        if(min_cour < val_min):
+            val_min = min_cour
+    return val_min
 
 
-def clipping_voisin(matrice, i, j, rayon=1):
+def generation_matrice_carre_aleatoire(n: int, borne_inf: int = 1,
+                                       borne_sup: int = 10) -> List[List[int]]:
+    """
+    Genère une matrice de valeurs entre 2 bornes
+    """
+    return [[randint(borne_inf, borne_sup)
+                for x in range(n)] for y in range (n)]
+
+def ajout_obstacle(matrice: List[List[int]]):
+    """
+    Créer des obstacles dans la valeur minimale de la matrice de coût
+    """
+    min_val = min_matrix(matrice)
+    for i in range(len(matrice)):
+        for j in range(len(matrice[0])):
+            if(matrice[i][j] == min_val):
+                matrice[i][j] = float("inf")
+
+
+def clipping_voisin(matrice: List[List[int]], i: int, j: int,
+                                                 rayon : int = 1) -> List[int]:
     """
 
     Clipping voisin d'un point avec un rayon carré
@@ -55,7 +73,6 @@ def clipping_voisin(matrice, i, j, rayon=1):
     if(diag_haut_y >= n):
         diag_haut_y = n-1
 
-
     #Point d'intersection bas
     diag_bas_x = i + rayon
     if(diag_bas_x >= n):
@@ -74,7 +91,7 @@ def clipping_voisin(matrice, i, j, rayon=1):
     return vec
 
 
-def tukey(matrice, rayon=1):
+def tukey(matrice: List[List[int]], rayon : int = 1) -> List[List[int]]:
     """
     Renvoie une matrice bruite avec le bruit de tukey
     possibilite de mettre un rayon
@@ -94,7 +111,7 @@ def tukey(matrice, rayon=1):
 
 
 
-def median(vec):
+def median(vec: List[int]) -> int:
     """
     Renvoie la valeur médiane d'une liste de données
     """
@@ -108,7 +125,17 @@ def median(vec):
     else:
         return ((vec[n//2-1] + vec[n//2]) // 2)
 
+def generation_matrice_terrain(n: int, borne_inf: int = 1, borne_sup: int = 10,
+                     rayon : int = 1, obstacle: bool = False)-> List[List[int]]:
+    """
+    Génération de matrice pour le terrain
+    """
+    matrice = tukey(generation_matrice_carre_aleatoire(n, borne_inf, borne_sup),
+                                                                         rayon)
+    if obstacle:
+        ajout_obstacle(matrice)
 
+    return matrice
 
 def gestion_poly(matrice):
     #faire les poly separer
@@ -159,6 +186,7 @@ def gestion_poly_trx(matrice):
                 if i==n:
                     break
             for j in range(n):
+
                 if j>=1:
                     ecartx=2
                 if j==n-1:
@@ -180,7 +208,7 @@ def gestion_poly_trx(matrice):
                 glVertex3f(j*ecartx+2, i*ecarty, matrice[i][j+1]);
                 glVertex3f(j*ecartx+1, i*ecarty, matrice[i][j]);
                 glEnd()
-        
+
 def gestion_poly_try(matrice):
         #faire les poly separer
         #recuperation de la longeur
@@ -271,3 +299,9 @@ def grid_map(matrice_map):
     gestion_poly_trx(matrice_map)
     gestion_poly_try(matrice_map)
     gestion_poly_tr_trigd(matrice_map)
+
+if __name__ == "__main__":
+
+    mat = generation_matrice_terrain(5, obstacle=True)
+    print(mat)
+    print(min_matrix(mat))
