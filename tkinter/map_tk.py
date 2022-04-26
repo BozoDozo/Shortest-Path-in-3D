@@ -9,6 +9,7 @@ def generation_matrice(n):
         ligne=[]
         for j in range(n):
             nb=randint(1,10)
+
             ligne.append(nb)
 
         map.append(ligne)
@@ -31,11 +32,15 @@ def generation_matrice_carre(n):
 
     return map
 def faire_couleur(nbr):
-    coul=90*nbr
-    if coul<100:
-        nbr_couleur="0"+str(coul)
+    print(nbr)
+    coul=10*nbr
+    if nbr>=8:
+        nbr_couleur="#FFF"
+    elif coul<100:
+        nbr_couleur="#"+str(coul)+"0"
+
     else:
-        nbr_couleur=str(coul)
+        nbr_couleur="#"+str(coul)
 
     return nbr_couleur
 def creation_map(liste_square_map_id,canva,liste_cout,n):
@@ -51,8 +56,8 @@ def creation_map(liste_square_map_id,canva,liste_cout,n):
     for j in range(0,n):
         ligne=[]
         for i in range(0,n):
-            coul=faire_couleur(liste_cout[j][i])
-            couleur="#000"+coul+"000"
+            couleur=faire_couleur(liste_cout[j][i])
+
             id=canva.create_rectangle(xa,ya,xb,yb,fill=couleur)
             ligne.append(id)
             xa=xa+width_square
@@ -65,10 +70,11 @@ def creation_map(liste_square_map_id,canva,liste_cout,n):
     return liste_square_map_id
 
 def mettre_couleur_dep_ar(liste_square_map_id,depart,arrive,canva,n):
-    
+
     xd=depart//n
     yd=depart%n
     xa=arrive//n
     ya=arrive%n
+
     canva.itemconfigure(liste_square_map_id[xa][ya],fill="red")
     canva.itemconfigure(liste_square_map_id[xd][yd],fill="yellow")

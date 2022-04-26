@@ -41,11 +41,13 @@ def trace_beizier_quatre(x0, y0, x1, y1, x2, y2, x3, y3, it, debut=0):
     la variable debut definit l'endroit où la courbe commence s'afficher
      exemple 0.25 on commence au 2ème point de controle
     """
-
+    global canva
+    pas=1/it
     u = debut
     while(u < 1):
         xi, yi = bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,u)
         #Tracer OpenGL le point xi, yi
+        canva.create_line(xi,yi,xi+1,yi+1)
         u += pas
 
 
@@ -56,6 +58,7 @@ def trace_beizier(liste_points,it):
     Trace une courbe de bézier sur OpenGL, prend en paramètre
     une liste de points
     """
+    liste_points=liste_points[:-1]
     n = len(liste_points)
 
     if(n < 4):
@@ -66,7 +69,6 @@ def trace_beizier(liste_points,it):
                         # pas dans un quadruplet
 
     n_int = n-n_hors
-
     #On trace la courbe pour le cas général
     for i in range(0, n_int, 3):
         trace_beizier_quatre(*liste_points[i],*liste_points[i+1],

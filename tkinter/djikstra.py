@@ -106,7 +106,8 @@ def djikstra(matrice,liste_square_map,somde,somear):
                 x=voisin//n
                 y=voisin%n
                 val_voisin=matrice[x][y]
-
+                if val_voisin>=15:
+                    val_voisin=float('inf')
                 #pour passer par le chemin on teste
                 if liste_court[voisin][0]>val_voisin+val:
                     liste_court[voisin][0]=val_voisin+val
