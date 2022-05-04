@@ -18,14 +18,14 @@ def voisin_dijkstra(matrice: List[List[int]], i: int, j: int ) -> List[int]:
         if j_suiv:
             liste_voisin.append(matrice[i-1][j+1])
         if j_prec:
-            lsite_voisin.append(matrice[i-1][j-1])
+            liste_voisin.append(matrice[i-1][j-1])
     #On regarde les voisins sur la ligne du dessous
     if i != len(matrice) - 1:
         liste_voisin.append(matrice[i+1][j])
         if j_suiv:
             liste_voisin.append(matrice[i+1][j+1])
         if j_prec:
-            lsite_voisin.append(matrice[i+1][j-1])
+            liste_voisin.append(matrice[i+1][j-1])
 
     return liste_voisin
 
@@ -44,7 +44,7 @@ def dijkstra(matrice: List[List[int]], depart: Tuple[int, int],
             for x in range(len(matrice[0]))] for y in range (len(matrice))]
 
     #On initialise le couple pour le sommet de départ
-    matrice_cout[depart[0]][depart[1]] = (0, 0)
+    matrice_cout_cumul[depart[0]][depart[1]] = (0, 0)
     #On part du sommet de départ
     courant = depart
     #Tant que l'on ne trouve pas l'arrivée

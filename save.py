@@ -14,6 +14,7 @@ def ecrire_matrice(mat: List[List[int]], path: str = "output.txt") :
             f.write(f"{nb} ")
         #On saute la ligne pour passer a la nouvelle
         f.write('\n')
+    f.close()
 
 def lire_matrice(path: str = "output.txt") -> List[List[int]]:
     """
@@ -35,11 +36,12 @@ def lire_matrice(path: str = "output.txt") -> List[List[int]]:
                 mat[i][j] = float("inf")
             else:
                 mat[i][j] = int(mat[i][j])
+    f.close()
     return mat
+
 
 
 if __name__ == "__main__":
 
     mat = [[1,2,33],[4,58,float('inf')],[7,8,9]]
     ecrire_matrice(mat,"test.txt")
-    print(mat == lire_matrice("test.txt"))
