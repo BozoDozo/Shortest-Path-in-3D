@@ -4,10 +4,13 @@
 ###############################################################
 # portage de planet.c
 from map import *
-
+from animation import *
 ###############################################################
 # Variables Globales
-cpt=1
+cpt=0.1
+cpt_x=0
+cpt_y=0
+cpt_z=0
 #postitionement
 x_pos, y_pos, z_pos = 0, 0, 0
 
@@ -21,12 +24,17 @@ diffuse = [0.7, 0.7, 0.7, 1.0]
 specular = [0.001, 0.001, 0.001, 1.0]
 pos = [1, 1, -1, 0]
 
+anim=False
+anim_bouton=False
 quadric = None
 DISPLAY_GRID = False
+
+#matrice
 ############################################################## #
 
 matrice_map = generation_matrice(10)
 matrice_map = tukey(matrice_map, 2)
+print(matrice_map)
 #matrice_map=tukey(matrice_map)
 def init():
     global quadric
@@ -50,7 +58,7 @@ def init():
 
 
 def display():
-    global cpt
+    global cpt_x,cpt_y,cpt_z,anim,anim_bouton
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     glPushMatrix()
@@ -80,8 +88,19 @@ def display():
 
     #creation de la map
     grid_map(matrice_map)
-    cpt=cpt+0.1
-    animation(cpt)
+
+    #decaleage de camera decalage de la bouel
+    if anim==True and anim_bouton==False:
+        #nouvel coord
+        cpt_x=cpt_x+cpt+0.1
+        cpt_y=cpt_y+cpt
+        cpt_z=0
+
+        animation(cpt_x,cpt_y,matrice_map)
+
+    else:
+
+        animation(cpt_x,cpt_y,matrice_map)
     glPopMatrix()
 
     glutSwapBuffers()
@@ -89,9 +108,10 @@ def display():
     glLoadIdentity()
 
     gluLookAt(*eye,*center,*up_vec)
-    glRotatef(eye_angle_y, 0.0, 0.0, 0.0)
+    glRotatef(eye_angle_y, 0.0, 1.0, 0.0)
     glRotatef(eye_angle_x, 1.0, 0, 0)
     glRotatef(eye_angle_z, 0, 0, 1.0)
+    anim_bouton=False
 
 def reshape(width, height):
 
@@ -105,57 +125,66 @@ def reshape(width, height):
 
 def keyboard(key, x, y):
     global DISPLAY_GRID, eye_angle_x, eye_angle_y, eye_angle_z, center,up_vec
-    global pos
+    global pos,anim,anim_bouton
     if key == b'g':
-            DISPLAY_GRID = not DISPLAY_GRID
-
+        DISPLAY_GRID = not DISPLAY_GRID
+        anim_bouton=True
     #Zoom deplacement de la cam era selon l'axe z
     elif key == b'z':
         eye[2]-=1
-
+        anim_bouton=True
     elif key == b's':
-         eye[2]+=1
+        eye[2]+=1
+        anim_bouton=True
     # #deplacement de la camera selon l'axe y
-    # elif key == b'8':
-    #     eye[1]+=1
-    # elif key == b'2':
-    #     eye[1]-=1
-    # #deplacement de la camera selon l'axe x
-    # elif key == b'4':
-    #     eye[0]+=1
-    # elif key == b'6':
-    #     eye[0]-=1
+    elif key == b'q':
+        eye[1]+=1
+        anim_bouton=True
+    elif key == b'd':
+        eye[1]-=1
+        anim_bouton=True
+    #deplacement de la camera selon l'axe x
+    elif key == b'w':
+        anim_bouton=True
+        eye[0]+=1
+    elif key == b'x':
+        eye[0]-=1
+        anim_bouton=True
 
     #Deplacement du centre sur l'axe x
-    elif key == b'q':
+    elif key == b'f':
         center[0]-=1
-
-    elif key == b'd':
+        anim_bouton=True
+    elif key == b'h':
         center[0]+=1
-
+        anim_bouton=True
     #Rotation sur l'axe z
-    elif key == b'9':
+    elif key == b'Z':
         eye_angle_z = (eye_angle_z + 5) % 360
-
-    elif key == b'3':
+        anim_bouton=True
+    elif key == b'S':
         eye_angle_z = (eye_angle_z - 5) % 360
 
+        anim_bouton=True
 
     #Rotation sur l'axe y
-    elif key == b'Z':
+    elif key == b'Q':
         eye_angle_y = (eye_angle_y + 5) % 360
-
-    elif key == b'S':
+        anim_bouton=True
+    elif key == b'D':
         eye_angle_y = (eye_angle_y - 5) % 360
+        anim_bouton=True
 
     #Rotation sur l'axe x
-    elif key == b'Q':
+    elif key == b'W':
         eye_angle_x = (eye_angle_x + 5) % 360
-
-    elif key == b'D':
+        anim_bouton=True
+    elif key == b'X':
         eye_angle_x = (eye_angle_x - 5) % 360
+        anim_bouton=True
     elif key == b'a':
-            print("animation")
+        anim=True
+        anima(0)
 
 
 # faire transaltion
@@ -164,7 +193,13 @@ def keyboard(key, x, y):
         glutDestroyWindow(WIN)
         sys.exit(0)
     glutPostRedisplay()  # indispensable en Python
-    print(eye)
+
+
+def anima(cptt):
+    global cpt
+    glutTimerFunc(100,anima,0)
+    display()
+
 
 ###############################################################
 # MAIN
@@ -183,6 +218,7 @@ if __name__ == "__main__":
     glutReshapeFunc(reshape)
     glutDisplayFunc(display)
     glutKeyboardFunc(keyboard)
+
 
     init()
 

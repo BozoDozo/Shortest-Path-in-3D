@@ -9,7 +9,15 @@ on a aussi une matrice de liste_court avec les infini
 et une liste voisin
 """
 
+def liste_coor_djikstra(liste):
+    liste_coord=[]
+    for i in range(len(liste)):
 
+        x=liste[i]//10
+        y=liste[i]%10
+        liste_coord.append((x,y))
+
+    return liste_coord
 def clipping_voisin(matrice, i, j, rayon=1):
     """
     Clipping voisin d'un point avec un rayon carré

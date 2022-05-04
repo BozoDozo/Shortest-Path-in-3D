@@ -9,7 +9,6 @@ on a aussi une matrice de liste_court avec les infini
 et une liste voisin
 """
 
-
 def faire_voisin(somde,n):
 
     liste_voisin=()
@@ -100,7 +99,7 @@ def djikstra(matrice,somde,somear):
      liste_chemin=[]
      liste_chemin.append(somear)
      while somear!=save_somde:
-        print("chemin\n",somear)
+
         liste_chemin.append(liste_court[somear][1])
         somear=liste_court[somear][1]
 

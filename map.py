@@ -6,7 +6,7 @@ from math import sin, cos
 import sys
 from random import *
 from dijkstra import *
-
+from bezier import *
 
 def generation_matrice(n):
     """generation& d'une matrice nxn avec des nombres alea*
@@ -176,6 +176,7 @@ def gestion_poly_trx(matrice):
                 glVertex3f(j*ecartx+2, i*ecarty, matrice[i][j+1]);
                 glVertex3f(j*ecartx+1, i*ecarty, matrice[i][j]);
                 glEnd()
+
 def gestion_poly_try(matrice):
         #faire les poly separer
         #recuperation de la longeur
@@ -289,12 +290,34 @@ def tracer_dijkstra(liste,matrice):
         #pour passe au prochain segment
         cpt=cpt+1
 
+def gestion_poly_map():
+    for i in range(50):
+        for j in range(50):
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, [1,0, 0, 1.0])
+            glBegin(GL_POLYGON);
 
+            glVertex3f(j, i,0);
+            glVertex3f(j, i+1, 0);
 
-def animation(cpt):
-    glTranslated(0,0,10+cpt)
-    glutSolidSphere(1,10,10)
+            glVertex3f(j, i+1, 0);
+            glVertex3f(j+1, i+1, 0);
 
+            glVertex3f(j+1, i+1, 0);
+            glVertex3f(j+1, i, 0);
+
+            glVertex3f(j+1, i, 0);
+            glVertex3f(j, i, 0);
+            glEnd()
+
+def liste_coor_djikstra(liste):
+    liste_coord=[]
+    for i in range(len(liste)):
+
+        x=liste[i]//10
+        y=liste[i]%10
+        liste_coord.append((x,y))
+
+    return liste_coord
 def grid_map(matrice_map):
     """generation poly separe"""
     gestion_poly(matrice_map)
@@ -302,8 +325,15 @@ def grid_map(matrice_map):
     gestion_poly_trx(matrice_map)
     gestion_poly_try(matrice_map)
     gestion_poly_tr_trigd(matrice_map)
-
-
+    #glTranslated(-12,-12,0)
+    #gestion_poly_map()
     """TRACER dijkstra"""
-    liste=djikstra(matrice_map,0,99)
-    tracer_dijkstra(liste,matrice_map)
+    liste=djikstra(matrice_map,0,85)
+    liste_coors_dji=liste_coor_djikstra(liste)
+
+    it=100
+    trace_beizier(liste_coors_dji,it)
+    #tracer_dijkstra(liste,matrice_map)
+
+    #liste=djikstra(matrice_map,0,99)
+    #tracer_dijkstra(liste,matrice_map)
