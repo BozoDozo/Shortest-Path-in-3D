@@ -202,7 +202,7 @@ def actu_matrice():
     global depart, arrivee, depart_id, arrivee_id, cote
     depart, arrivee,depart_id, arrivee_id = None, None, None, None
     maj_min_max()
-    # Taille de carré en fonction de la taille de la matrice
+    # Taille des carrés en fonction de la taille de la matrice
     cote = 500/len(Matrice[0])
     #print(len(Matrice))
     #print(cote)
@@ -213,7 +213,7 @@ def actu_matrice():
     for i in range(len(Matrice[0])):
         for j in range(len(Matrice)):
             couleur = get_color(Matrice[i][j])
-            # Les obstacles et valeurs finis ne sont pas traités de la même manière
+    # Les obstacles et valeurs finis ne sont pas traités de la même manière
             if(Matrice[i][j] == float("inf")):
                 Canva.create_rectangle(i*cote, j*cote,i*cote+cote, j*cote+cote, fill= couleur, tags=("inf", str((i,j))))
             else:
