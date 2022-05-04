@@ -39,22 +39,21 @@ def generation_matrice():
     les paramètres demandés en ihm
     """
     global Matrice
-    n = 10
-    borne = 10
-    flat = 1
-    obs = False
-    cran = 0
     win_2 = tk.Toplevel(win)
+    n =  tk.IntVar(win_2, 10)
+    borne = tk.IntVar(win_2, 10)
+    flat = tk.IntVar(win_2, 1)
+    obs = tk.IntVar(win_2, 0)
+    cran = tk.IntVar(win_2, 0)
     win_2.title("Generation de Matrice")
-    scale_matrice = tk.Scale(win_2, label="Taille de la matrice", from_=5, to_=50, variable=n , orient="horizontal").pack(side="top")
-    scale_borne = tk.Scale(win_2, label="Borne supérieur des valeurs", from_=2, to_=100, variable=borne, orient="horizontal").pack(side="top")
-    scale_flatness = tk.Scale(win_2, label="Taux d’aplatissement des valeurs", from_=0, to_=10, variable=flat, orient="horizontal").pack(side="top")
-    scale_obstacle = tk.Checkbutton(win_2, text= "Présence d'obstacles", variable=obs).pack(side="top")
-    scale_cran_obstacle = tk.Scale(win_2, label="Taux d’obstacles", from_=0, to_=100, variable=cran, orient="horizontal").pack(side="top")
-    bouton_confirmer = tk.Button(win_2,text="Valider",command=lambda:nouvelle_matrice(win_2, n, borne, flat, obs, cran)).pack(side="bottom")
-    print(n, borne, flat, obs, cran)
+    scale_matrice = tk.Scale(win_2, label="Taille de la matrice", from_=5, to_=50, variable=n , length="10c", orient="horizontal").pack(side="top")
+    scale_borne = tk.Scale(win_2, label="Borne supérieur des valeurs", from_=2, to_=100, variable=borne,length="10c", orient="horizontal").pack(side="top")
+    scale_flatness = tk.Scale(win_2, label="Taux d’aplatissement des valeurs", from_=0, to_=10, variable=flat, length="10c", orient="horizontal").pack(side="top")
+    check_obstacle = tk.Checkbutton(win_2, text= "Présence d'obstacles", variable=obs).pack(side="top")
+    scale_cran_obstacle = tk.Scale(win_2, label="Taux d’obstacles", from_=0, to_=100, variable=cran, length="10c", orient="horizontal").pack(side="top")
+    bouton_confirmer = tk.Button(win_2,text="Valider",command=lambda:nouvelle_matrice(win_2, n.get(), borne.get(), flat.get(), bool(obs.get()), cran.get())).pack(side="bottom")
 
-def nouvelle_matrice(win: tk.Toplevel, taille : int, borne_sup: int, flatness: int, a_obstacle: int, cran_obstacle: int):
+def nouvelle_matrice(win: tk.Toplevel, taille : int, borne_sup: int, flatness: int, a_obstacle: bool, cran_obstacle: int):
     global Matrice
     Matrice = generation_matrice_terrain(taille, 1, borne_sup, flatness, a_obstacle, cran_obstacle )
     print(Matrice)
