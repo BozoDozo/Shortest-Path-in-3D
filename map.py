@@ -28,7 +28,7 @@ def min_max_matrix(matrice: List[List[int]]) -> Union[int, float]:
 
 def valeurs_matrice(matrice: List[List[int]]) -> List[int]:
     """
-    Retourne une liste ordonnée des éléments unique de la matrice
+    Retourne une liste ordonnée des valeurs unique de la matrice
     """
     valeurs = set()
     for l in matrice:
@@ -52,9 +52,10 @@ def ajout_obstacle(matrice: List[List[int]], indice: int = 0):
     """
     Créer des obstacles dans la valeur minimale de la matrice de coût
     """
-    if(indice >= len(matrice[0])):
-        indice = len(matrice[0])-1
-    seuil = valeurs_matrice(matrice)[indice]
+    val = valeurs_matrice(matrice)
+    if(indice >= len(val)):
+        indice = len(val)-1
+    seuil = val[indice]
     for i in range(len(matrice)):
         for j in range(len(matrice[0])):
             if(matrice[i][j] <= seuil):
@@ -86,7 +87,6 @@ def clipping_voisin(matrice: List[List[int]], i: int, j: int,
     """
     n = len(matrice)
     vec = []
-
     #Point d'intersection haut
     diag_haut_x = i - rayon
     if(diag_haut_x < 0):
