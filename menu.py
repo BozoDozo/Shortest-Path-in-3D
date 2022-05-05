@@ -1,8 +1,6 @@
 from ast import Global
-from select import select
 import tkinter as tk
 from tkinter import  filedialog
-from turtle import left
 from save import lire_matrice
 from save import ecrire_matrice
 from map import generation_matrice_terrain
@@ -73,7 +71,9 @@ def normalisation(valeur: Union[int,float] ) -> float:
     """
     Normalise d'une valeur en fonction du minimum et du maximum
     """
-    return (valeur-min_value)/(max_value-min_value)
+    if( (denominateur := max_value - min_value) == 0):
+        denominateur = min_value
+    return (valeur-min_value)/(denominateur)
 
 
 def hex_to_rgb(value: str):
@@ -115,26 +115,22 @@ def get_color(val: Union[int, float]) -> str:
 def circle_to_oval(x: int, y: int, r: int):
     return (x-r, y-r, x+r, y+r)
 # Fonction pour les boutons
-def ouvrir_fichier():
+def ouvrir_matrice():
     """
-    Renvoie le chemin du fichier sélectionné
+    Ouvre une matrice à partir d'un fichier d'une matrice
     """
-    return filedialog.askopenfilename()
+    global Matrice
+    if (path:= filedialog.askopenfilename()):
+        Matrice = lire_matrice(path)
+        actu_matrice()
 
 def sauver_matrice():
     """
     Sauvegarde la matrice courante
     """
-    ecrire_matrice(Matrice, filedialog.asksaveasfilename())
-
-def ouvrir_matrice():
-    """
-    Ouvre une matrice
-    """
-    global Matrice
-    if((path := ouvrir_fichier()) != ""):
-        Matrice = lire_matrice(path)
-        actu_matrice()
+    
+    if((path:= filedialog.asksaveasfilename()!= "")):
+        ecrire_matrice(Matrice, path)
 
 def modif_parametre():
     """
@@ -258,13 +254,14 @@ def selec_arrivee(event = None):
     # Car coords ressemble à "(x, y)"
     i = int(coords[0][1:])
     j = int(coords[1][1:-1])
-    arrivee = (i,j)
-    # Calcul de points pour créer un cercle au centre du carré
-    xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
-    arrivee_id = Canva.create_oval(*xy_xy, fill="red",tags=("arrivee", str((i,j))))
-    Canva.tag_unbind("point", "<1>")
-    Canva.tag_unbind("point", "<2>")
-    bouton_chemin.config(state="normal")
+    if(depart != (i,j)):
+        arrivee = (i,j)
+        # Calcul de points pour créer un cercle au centre du carré
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
+        arrivee_id = Canva.create_oval(*xy_xy, fill="red",tags=("arrivee", str((i,j))))
+        Canva.tag_unbind("point", "<1>")
+        Canva.tag_unbind("point", "<2>")
+        bouton_chemin.config(state="normal")
 
 def deselec(event = None):
     """
@@ -289,7 +286,6 @@ def ajout_obstacle(event = None):
     """
     id = Canva.find_withtag("current")
     tags = Canva.gettags(id)
-    print(tags)
     coords = tags[1].split(',')
     # Car coords ressemble à "(x, y)""
     i = int(coords[0][1:])
