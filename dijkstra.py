@@ -28,7 +28,7 @@ def voisin_dijkstra(matrice: list, i: int, j: int ) -> list:
     return liste_voisin
 
 def dijkstra(matrice: list, depart: tuple,
-                arrivee: tuple, obstacle: bool = False) -> List[int]:
+                arrivee: tuple) -> list:
     """
     Renvoie la liste des points effectuant le plus court chemin entre
     un sommet de départ et sommet arrivée dansune matrice de coûts

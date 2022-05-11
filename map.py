@@ -1,9 +1,8 @@
 #mes biblio
-# from OpenGL.GL import *  # exception car prefixe systematique
-# from OpenGL.GLU import *
-# from OpenGL.GLUT import *
-# from math import sin, cos
-import sys
+from OpenGL.GL import *  # exception car prefixe systematique
+from OpenGL.GLU import *
+from OpenGL.GLUT import *
+
 from random import randint
 from typing import List, Union
 
