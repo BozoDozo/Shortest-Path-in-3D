@@ -1,6 +1,6 @@
 from typing import List
 
-def ecrire_matrice(mat: List[List[int]], path: str = "output.txt") :
+def ecrire_matrice(mat: list, path: str = "output.txt") :
     """
     Ecrit une matrice dans un fichier texte avec le formatage
     suivant:
@@ -16,7 +16,7 @@ def ecrire_matrice(mat: List[List[int]], path: str = "output.txt") :
         f.write('\n')
     f.close()
 
-def lire_matrice(path: str = "output.txt") -> List[List[int]]:
+def lire_matrice(path: str = "output.txt") -> list:
     """
     Lit un fichier écrit par la fonction ecrire_matrice et renvoie
     la matrice avec les valeurs associés

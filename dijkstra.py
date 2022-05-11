@@ -1,7 +1,5 @@
-from typing import List, Tuple
 
-
-def voisin_dijkstra(matrice: List[List[int]], i: int, j: int ) -> List[int]:
+def voisin_dijkstra(matrice: list, i: int, j: int ) -> list:
     """
     Renvoie la liste des voisins d'un élément dans une matrice pour
     l'algorithme de Dijkstra
@@ -29,8 +27,8 @@ def voisin_dijkstra(matrice: List[List[int]], i: int, j: int ) -> List[int]:
 
     return liste_voisin
 
-def dijkstra(matrice: List[List[int]], depart: Tuple[int, int],
-                arrivee: Tuple[int, int], obstacle: bool = False) -> List[int]:
+def dijkstra(matrice: list, depart: tuple,
+                arrivee: tuple, obstacle: bool = False) -> List[int]:
     """
     Renvoie la liste des points effectuant le plus court chemin entre
     un sommet de départ et sommet arrivée dansune matrice de coûts

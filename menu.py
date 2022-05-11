@@ -76,7 +76,7 @@ def normalisation(valeur: Union[int,float] ) -> float:
     return (valeur-min_value)/(denominateur)
 
 
-def hex_to_rgb(value: str):
+def hex_to_rgb(value: str)-> tuple:
     """Return (red, green, blue) for the color given as #rrggbb."""
     value = value.lstrip('#')
     lv = len(value)
@@ -86,7 +86,7 @@ def rgb_to_hex(red: int, green: int, blue: int):
     """Return color as #rrggbb for the given color values."""
     return '#%02x%02x%02x' % (red, green, blue)
 
-def shade_color(color: Tuple[int, int, int], factor:int):
+def shade_color(color: tuple, factor:int) -> list:
         """
         Retourne la couleur rgb assombri ou éclaircir
         """
@@ -113,6 +113,8 @@ def get_color(val: Union[int, float]) -> str:
     return rgb_to_hex(*color)
 
 def circle_to_oval(x: int, y: int, r: int):
+    """Permet la construction d'un cercle à partir
+    en utilisant la construction d'un ovale"""
     return (x-r, y-r, x+r, y+r)
 # Fonction pour les boutons
 def ouvrir_matrice():
@@ -129,7 +131,7 @@ def sauver_matrice():
     Sauvegarde la matrice courante
     """
     
-    if((path:= filedialog.asksaveasfilename()!= "")):
+    if((path:= filedialog.asksaveasfilename())):
         ecrire_matrice(Matrice, path)
 
 def modif_parametre():
