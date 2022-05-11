@@ -9,7 +9,7 @@ from typing import List, Union
 
 
 
-def min_max_matrix(matrice: List[List[int]]) -> Union[int, float]:
+def min_max_matrix(matrice: list) -> Union[int, float]:
     """
     Retourne la valeur minimale d'une matrice
     """
@@ -26,7 +26,7 @@ def min_max_matrix(matrice: List[List[int]]) -> Union[int, float]:
     return val_min, val_max
 
 
-def valeurs_matrice(matrice: List[List[int]]) -> List[int]:
+def valeurs_matrice(matrice: list) -> list:
     """
     Retourne une liste ordonnée des valeurs unique de la matrice
     """
@@ -41,14 +41,14 @@ def valeurs_matrice(matrice: List[List[int]]) -> List[int]:
 
 
 def generation_matrice_carre_aleatoire(n: int, borne_inf: int = 1,
-                                       borne_sup: int = 10) -> List[List[int]]:
+                                       borne_sup: int = 10) -> list:
     """
     Genère une matrice de valeurs entre 2 bornes
     """
     return [[randint(borne_inf, borne_sup)
                 for x in range(n)] for y in range (n)]
 
-def ajout_obstacle(matrice: List[List[int]], indice: int = 0):
+def ajout_obstacle(matrice: list, indice: int = 0):
     """
     Créer des obstacles dans la valeur minimale de la matrice de coût
     """
@@ -62,8 +62,8 @@ def ajout_obstacle(matrice: List[List[int]], indice: int = 0):
                 matrice[i][j] = float("inf")
 
 
-def clipping_voisin(matrice: List[List[int]], i: int, j: int,
-                                                 rayon : int = 1) -> List[int]:
+def clipping_voisin(matrice: list, i: int, j: int,
+                                                 rayon : int = 1) -> list:
     """
 
     Clipping voisin d'un point avec un rayon carré
@@ -114,7 +114,7 @@ def clipping_voisin(matrice: List[List[int]], i: int, j: int,
     return vec
 
 
-def tukey(matrice: List[List[int]], rayon : int = 1) -> List[List[int]]:
+def tukey(matrice: list, rayon : int = 1) -> list:
     """
     Renvoie une matrice bruite avec le bruit de tukey
     possibilite de mettre un rayon
@@ -137,7 +137,7 @@ def tukey(matrice: List[List[int]], rayon : int = 1) -> List[List[int]]:
 
 
 
-def median(vec: List[int]) -> int:
+def median(vec: list) -> int:
     """
     Renvoie la valeur médiane d'une liste de données
     """
@@ -152,7 +152,7 @@ def median(vec: List[int]) -> int:
         return ((vec[n//2-1] + vec[n//2]) // 2)
 
 def generation_matrice_terrain(n: int, borne_inf: int = 1, borne_sup: int = 10,
-                     rayon : int = 1, obstacle: bool = False, indice: int = 0)-> List[List[int]]:
+                     rayon : int = 1, obstacle: bool = False, indice: int = 0)-> list:
     """
     Génération de matrice pour le terrain
     """
