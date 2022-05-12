@@ -1,23 +1,22 @@
-from ast import Global
 import tkinter as tk
 from tkinter import  filedialog
 from save import lire_matrice
 from save import ecrire_matrice
 from map import generation_matrice_terrain
 from map import min_max_matrix
-from typing import Union, List, Tuple
-
+from dijkstra import dijkstra, a_star
+import numpy as np
 # Variable Gloables
-Matrice = [[float('inf'), 3, 5, 5, 8, 6, 7, 3, 3, float('inf')],
-           [4, 5, 5, 5, 6, 6, 7, 3, 3, float('inf')],
-           [5, 4, 4, 4, 6, 7, 8, 7, 3, float('inf')],
-           [6, 5, 5, 4, 3, 6, 9, 8, 7, 7],
-           [7, 7, 7, 6, 6, 6, 7, 8, 7, 7],
-           [6, 7, 7, 7, 7, 5, 7, 4, 3, float('inf')],
-           [8, 7, 8, 7, 7, 6, 6, float('inf'), float('inf'), float('inf')],
-           [4, 5, 5, 8, 8, 6, 6, 6, 4, float('inf')],
-           [3, 5, 5, 6, 6, 6, 6, 5, 4, float('inf')],
-           [float('inf'), 4, 4, 5, 5, 6, 6, 6, 5, 3]]
+matrice   = np.matrix([[np.inf, 3., 5., 5., 8., 6., 7., 3., 3., np.inf],
+           [4., 5., 5., 5., 6., 6., 7., 3., 3., np.inf],
+           [5., 4., 4., 4., 6., 7., 8., 7., 3., np.inf],
+           [6., 5., 5., 4., 3., 6., 9., 8., 7., 7.],
+           [7., 7., 7., 6., 6., 6., 7., 8., 7., 7.],
+           [6., 7., 7., 7., 7., 5., 7., 4., 3., np.inf],
+           [8., 7., 8., 7., 7., 6., 6., np.inf, np.inf, np.inf],
+           [4., 5., 5., 8., 8., 6., 6., 6., 4., np.inf],
+           [3., 5., 5., 6., 6., 6., 6., 5., 4., np.inf],
+           [np.inf, 4., 4., 5., 5., 6., 6., 6., 5., 3.]])
 
 
 taille_matrice = 10
@@ -25,8 +24,6 @@ borne = 10
 flat_niv = 1
 obstacle_bool = False
 seuil_obstacle = 0
-# Si 0 Dijsktra si 1 A*
-algo_chemin = 0
 #####################
 min_value = 0
 max_value = 10
@@ -38,7 +35,10 @@ depart = None
 arrivee = None
 depart_id = None
 arrivee_id = None
-
+trajet_dijkstra = []
+id_dijkstra = []
+trajet_a_star = []
+id_a_star = []
 texte_aide = """Barre d'outils:
     -Ouvir -> Pour selectionner et charger une matrice
     -Sauver -> Sauvegarder la matrice affichée à l'écran
@@ -46,7 +46,7 @@ texte_aide = """Barre d'outils:
     -Générer -> Génère une matrice aléatoire avec les paramètres actuels
     -Aide -> Affiche l'aide
 
-La Matrice: Selon l'intensité le carré est plus ou moins noir, si valeur infini donc obstacle alors couleur bleue 'eau'
+La matrice: Selon l'intensité le carré est plus ou moins noir, si valeur infini donc obstacle alors couleur bleue 'eau'
 
 Selection point de départ et d'arrivée: Le clic gauche LMB permet de sélectionner les deux points dans la matrice signalés à l'écran 
 par deux ronds rouge, on ne peut pas sélectionner des valeurs obstacles
@@ -54,7 +54,7 @@ par deux ronds rouge, on ne peut pas sélectionner des valeurs obstacles
 Désélection: Le clic droit de la souris permet désélectionner les points de départ et d'arrivée
 
 Ajout d'obstacles: Sans passer par les paramètres on peut rajouter directement des obstacles avec le bouton du milieu de la souris MMB
-    
+(seulement si aucun point n'est sélectionné)    
 Quitter: Quitte le programme
     
 Chemin: Début de l'algorithme de recherche de chemin, Inactif si les deux points ne sont pas sélectionnés
@@ -65,9 +65,9 @@ def maj_min_max():
     Mise à jour des valeurs minimales et maximales de la matrice
     """
     global min_value, max_value
-    min_value, max_value = min_max_matrix(Matrice)
+    min_value, max_value = min_max_matrix(matrice)
 
-def normalisation(valeur: Union[int,float] ) -> float:
+def normalisation(valeur: float ) -> float:
     """
     Normalise d'une valeur en fonction du minimum et du maximum
     """
@@ -86,7 +86,7 @@ def rgb_to_hex(red: int, green: int, blue: int):
     """Return color as #rrggbb for the given color values."""
     return '#%02x%02x%02x' % (red, green, blue)
 
-def shade_color(color: tuple, factor:int) -> list:
+def shade_color(color: tuple, factor:float) -> list:
         """
         Retourne la couleur rgb assombri ou éclaircir
         """
@@ -100,12 +100,12 @@ def shade_color(color: tuple, factor:int) -> list:
             shaded_color.append(x)
         return shaded_color
 
-def get_color(val: Union[int, float]) -> str:
+def get_color(val: float) -> str:
     """
     Récupère la couleur en niveau de gris
     pour une intensité donnée
     """
-    if(val == float('inf')):
+    if val == np.inf or val == np.NaN:
         color = (50,50,255)
     else:
         norm = normalisation(val)
@@ -121,9 +121,9 @@ def ouvrir_matrice():
     """
     Ouvre une matrice à partir d'un fichier d'une matrice
     """
-    global Matrice
+    global matrice
     if (path:= filedialog.askopenfilename()):
-        Matrice = lire_matrice(path)
+        matrice = lire_matrice(path)
         actu_matrice()
 
 def sauver_matrice():
@@ -132,7 +132,7 @@ def sauver_matrice():
     """
     
     if((path:= filedialog.asksaveasfilename())):
-        ecrire_matrice(Matrice, path)
+        ecrire_matrice(matrice, path)
 
 def modif_parametre():
     """
@@ -147,11 +147,10 @@ def modif_parametre():
     flat = tk.IntVar(win_2, flat_niv)
     obs = tk.IntVar(win_2, obstacle_bool)
     cran = tk.IntVar(win_2, seuil_obstacle)
-    algo = tk.IntVar(win_2, algo_chemin)
-    win_2.title("Generation de Matrice")
+    win_2.title("Generation de matrice")
     #Parametre pour la generation de la matrice
     tk.Scale(win_2, label="Taille de la matrice", from_=5, to_=50, variable=n , length="10c", orient="horizontal").pack(side="top")
-    tk.Scale(win_2, label="Borne supérieur des valeurs", from_=2, to_=100, variable=born,length="10c", orient="horizontal").pack(side="top")
+    tk.Scale(win_2, label="Borne supérieur des valeurs", from_=2, to_=1000, variable=born,length="10c", orient="horizontal").pack(side="top")
     tk.Scale(win_2, label="Taux d’aplatissement des valeurs", from_=0, to_=10, variable=flat, length="10c", orient="horizontal").pack(side="top")
     tk.Checkbutton(win_2, text= "Présence d'obstacles", variable=obs).pack(side="top")
     tk.Scale(win_2, label="Seuil des d’obstacles", from_=0, to_=5, variable=cran, length="10c", orient="horizontal").pack(side="top")
@@ -169,13 +168,13 @@ def nouvelle_matrice_modifie( taille : int, borne_sup: int, flatness: int, a_obs
     """
     Mise à jour des paramètres globaux et génération d'une nouvelle matrice
     """
-    global Matrice, taille_matrice, borne, flat_niv, obstacle_bool, seuil_obstacle, algo_chemin
+    global matrice, taille_matrice, borne, flat_niv, obstacle_bool, seuil_obstacle, algo_chemin
     # Generation de la nouvelle matrice
     algo_chemin = alg
     #Si aucun paramètre de creation de matrice n'a été changé alors on ne génère pas de nouvelle matrice
     if(taille_matrice, borne, flat_niv, obstacle_bool, seuil_obstacle) != (taille, borne_sup, flatness, a_obstacle, cran_obstacle):
-        Matrice = generation_matrice_terrain(taille, 1, borne_sup, flatness, a_obstacle, cran_obstacle )
-        #print(Matrice)
+        matrice = generation_matrice_terrain(taille, 1, borne_sup, flatness, a_obstacle, cran_obstacle )
+        #print(matrice)
         # Mise à jour des paramètres globaux
         taille_matrice, borne, flat_niv, obstacle_bool, seuil_obstacle = taille, borne_sup, flatness, a_obstacle, cran_obstacle
         #print(taille,  borne_sup, flatness,a_obstacle, cran_obstacle)
@@ -188,8 +187,8 @@ def nouvelle_matrice():
     """
     Génération d'une nouvelle matrice
     """
-    global Matrice
-    Matrice = generation_matrice_terrain(taille_matrice, 1, borne, flat_niv, obstacle_bool, seuil_obstacle )
+    global matrice
+    matrice = generation_matrice_terrain(taille_matrice, 1, borne, flat_niv, obstacle_bool, seuil_obstacle )
     actu_matrice()
 
 
@@ -197,22 +196,23 @@ def actu_matrice():
     """
     Actualise la matrice afficher à l'écran
     """
+    print(matrice)
     global depart, arrivee, depart_id, arrivee_id, cote
     depart, arrivee,depart_id, arrivee_id = None, None, None, None
     maj_min_max()
     # Taille des carrés en fonction de la taille de la matrice
-    cote = 500/len(Matrice[0])
-    #print(len(Matrice))
-    #print(cote)
+    l, c = matrice.shape
+    cote = 500/l
     Canva.delete(tk.ALL)
-    ht = cote*len(Matrice[0])
-    wt = cote*len(Matrice[0])
+    
+    ht = cote*l
+    wt = cote*l
     Canva.config(width=wt, height=ht)
-    for i in range(len(Matrice[0])):
-        for j in range(len(Matrice)):
-            couleur = get_color(Matrice[i][j])
+    for i in range(l):
+        for j in range(c):
+            couleur = get_color(matrice[i,j])
     # Les obstacles et valeurs finis ne sont pas traités de la même manière
-            if(Matrice[i][j] == float("inf")):
+            if(matrice[i,j] == np.inf):
                 Canva.create_rectangle(i*cote, j*cote,i*cote+cote, j*cote+cote, fill= couleur, tags=("inf", str((i,j))))
             else:
                 Canva.create_rectangle(i*cote, j*cote,i*cote+cote, j*cote+cote, fill= couleur, tags=("point", str((i,j))))
@@ -240,10 +240,11 @@ def selec_depart(event = None):
     j = int(coords[1][1:-1])
     depart = (i,j)
     # Calcul de points pour créer un cercle au centre du carré
-    xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
+    xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
     depart_id = Canva.create_oval(*xy_xy, fill="red",tags=("depart", str((i,j))))
     Canva.tag_unbind("point","<1>")
     Canva.tag_bind("point","<1>",selec_arrivee)
+    Canva.tag_unbind("point", "<2>")
 
 def selec_arrivee(event = None):
     """
@@ -259,10 +260,9 @@ def selec_arrivee(event = None):
     if(depart != (i,j)):
         arrivee = (i,j)
         # Calcul de points pour créer un cercle au centre du carré
-        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
         arrivee_id = Canva.create_oval(*xy_xy, fill="red",tags=("arrivee", str((i,j))))
         Canva.tag_unbind("point", "<1>")
-        Canva.tag_unbind("point", "<2>")
         bouton_chemin.config(state="normal")
 
 def deselec(event = None):
@@ -276,6 +276,11 @@ def deselec(event = None):
         Canva.delete(depart_id)
     if(arrivee_id):
         Canva.delete(arrivee_id)
+    for id_ in id_dijkstra:
+        Canva.delete(id_)
+    for id_ in id_a_star:
+        Canva.delete(id_)
+    
     depart_id = None
     arrivee_id = None
     Canva.tag_bind("point","<1>", selec_depart)
@@ -310,11 +315,50 @@ def afficher_aide(event = None):
     frame_button.pack(side="bottom",fill =tk.Y)
     tk.Button(frame_button,text="Ok",command=aide_win.destroy)
 
+def chemin(event = None):
+    """
+    Affiche les point de controle pour bezier calculés
+    par l'algorithme du plus court chemin
+    """
+    global trajet_dijkstra, id_dijkstra, id_a_star, trajet_a_star
+    algo_chemin = algo.get() 
+    trajet_dijkstra = a_star(matrice, depart, arrivee)
+    trajet_a_star = dijkstra(matrice, depart, arrivee)
+    for point in range(1,len(trajet_dijkstra)-1):
+        i, j = trajet_dijkstra[point]
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
+        id_dijkstra.append(Canva.create_oval(*xy_xy, fill="green", state="hidden", tags=("dij", str((i,j)))))
+    for point in range(1,len(trajet_a_star)-1):
+        i, j = trajet_a_star[point]
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
+        id_a_star.append(Canva.create_oval(*xy_xy, fill="purple", state="hidden", tags=("a_", str((i,j)))))
+
+    if(algo_chemin):
+        print("A*")
+        Canva.itemconfig("a_", state='normal')
+    else:
+        print("Dijkstra")
+        Canva.itemconfig("dij", state='normal')
+        
+    
+    bouton_chemin.config(state="disabled")
+
+
+def cacher_chemin(event = None):
+    if(algo.get()):
+        Canva.itemconfig("a_", state='normal')
+        Canva.itemconfig("dij", state='hidden')
+    
+    else:
+        Canva.itemconfig("dij", state='normal')
+        Canva.itemconfig("a_", state='hidden')
 # Initialisation des fenêtres
 win = tk.Tk()
 win.title("Plan du terrain")
 top_frame = tk.Frame(win)
 
+# Si 0 Dijsktra si 1 A*
+algo = tk.IntVar(win, 0)
 # Chargement d'une matrice à partir d'un fichier texte
 bouton_charger = tk.Button(
     top_frame, text="Ouvrir", width=20, command=ouvrir_matrice)
@@ -334,9 +378,13 @@ Canva = tk.Canvas(win)
 
 bottom_frame = tk.Frame(win)
 # Lancement de la recherche de chemin
-bouton_chemin = tk.Button(bottom_frame, text= "Chemin", state="disabled", width=20, height= 5)
+bouton_chemin = tk.Button(bottom_frame, text= "Chemin", state="disabled", width=20, height= 5, command=chemin)
 bouton_quitter = tk.Button(bottom_frame, text= "Quitter", width=20, height= 5, command=lambda:exit(0))
 
+radio_frame = tk.Frame(bottom_frame)
+
+tk.Radiobutton(radio_frame, text="Dijkstra", indicatoron=0, command =cacher_chemin, variable=algo, value= 0).pack(side="left")
+tk.Radiobutton(radio_frame, text="A*",indicatoron=0, variable=algo, command =cacher_chemin, value= 1).pack(side="left")
 # Disposition des Widgets
 bouton_charger.pack(side="left", expand=True)
 bouton_sauver.pack(side="left", expand=True)
@@ -347,6 +395,7 @@ top_frame.pack(side="top", fill=tk.X)
 Canva.pack(side="top")
 
 bouton_chemin.pack(side="right")
+radio_frame.pack(side ="right")
 bouton_quitter.pack(side="left")
 bottom_frame.pack(side="bottom", fill=tk.X)
 

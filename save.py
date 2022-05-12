@@ -1,6 +1,5 @@
-from typing import List
-
-def ecrire_matrice(mat: list, path: str = "output.txt") :
+import numpy as np
+def ecrire_matrice(mat: np.matrix, path: str = "output.txt") :
     """
     Ecrit une matrice dans un fichier texte avec le formatage
     suivant:
@@ -9,14 +8,15 @@ def ecrire_matrice(mat: list, path: str = "output.txt") :
     """
     f = open(path, 'w')
     #On parcourt la matrice ligne par ligne et colone par colone
-    for l in mat:
-        for nb in l:
-            f.write(f"{nb} ")
+    l, c = mat.shape
+    for i in range(l):
+        for j in range(c):
+            f.write(f"{mat[i,j]} ")
         #On saute la ligne pour passer a la nouvelle
         f.write('\n')
     f.close()
 
-def lire_matrice(path: str = "output.txt") -> list:
+def lire_matrice(path: str = "output.txt") -> np.matrix:
     """
     Lit un fichier écrit par la fonction ecrire_matrice et renvoie
     la matrice avec les valeurs associés
@@ -33,11 +33,12 @@ def lire_matrice(path: str = "output.txt") -> list:
     for i in range(l):
         for j in range(c):
             if(mat[i][j] == "inf"):
-                mat[i][j] = float("inf")
+                mat[i][j] = np.inf
             else:
-                mat[i][j] = int(mat[i][j])
+                mat[i][j] = float(mat[i][j])
     f.close()
-    return mat
+    print(mat)
+    return np.matrix(mat)
 
 
 
