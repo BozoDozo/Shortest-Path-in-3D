@@ -44,16 +44,14 @@ def trace_beizier_quatre(x0, y0, x1, y1, x2, y2, x3, y3, it, debut=0):
     la variable debut definit l'endroit où la courbe commence s'afficher
      exemple 0.25 on commence au 2ème point de controle
     """
-
     u = debut
     pas = 1/it
-    xi, yi = bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,u)
-    #mobile_2D.deplacement(xi, yi)
-    #u += pas
+    #xi, yi = bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,u)
     while (u <= 1):
-        
         xi, yi = bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,u)
         mobile_2D.deplacement(xi, yi)
+        Canva.update()
+        sleep(0.01)
         u += pas
 
 def trace_beizier(liste_points,it):
@@ -68,34 +66,34 @@ def trace_beizier(liste_points,it):
         return -1
 
     mobile_2D = Chenille_2D(*liste_points[0], 7, Canva, cote)
-    n_hors  = (n - 4)%3 #n_hors donne le nombre de points qui ne sont
+    n_hors  = (n - 4)%3 # n_hors donne le nombre de points qui ne sont
                         # pas dans un quadruplet
 
     n_int = n-n_hors-1
-    #On trace la courbe pour le cas général
-    #for i in range(0, n_int, 3):
+    # On trace la courbe pour le cas général
+    # for i in range(0, n_int, 3):
     i = 0
     while( i < n_int):
         trace_beizier_quatre(*liste_points[i],*liste_points[i+1],
                                     *liste_points[i+2], *liste_points[i+3],it)
         i+=3
 
-    #On vérifie que l'on ne se trouve pas dans le cas particulier où
+    # On vérifie que l'on ne se trouve pas dans le cas particulier où
     # il n'y que 4 points dans la liste
     if(n != 4):
 
-        #Il y a 2 points hors des quadruplets
+        # Il y a 2 points hors des quadruplets
         if n_hors == 2:
             trace_beizier_quatre(*liste_points[-4],*liste_points[-3],
                                         *liste_points[-2], *liste_points[-1],
                                                                       it, 0.25)
 
-        #Il y a 1 point hors des quadruplets
+        # Il y a 1 point hors des quadruplets
         elif n_hors == 1:
             trace_beizier_quatre(*liste_points[-4],*liste_points[-3],
                                         *liste_points[-2], *liste_points[-1],
                                                                        it, 0.75)
-        #Trace sur OpenGL le dernier point de la courbe
+        # Trace sur OpenGL le dernier point de la courbe
         mobile_2D.deplacement(*liste_points[-1])
       
     mobile_2D.delete()

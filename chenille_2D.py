@@ -1,16 +1,7 @@
 from utils import circle_to_oval
 from collections import deque
 from tkinter import Canvas
-from math import sqrt
 from utils import distance_eucl, vec_2D
-# def _init_boule(i: int, j: int, fact: float, index: int, chenille_id: list):
-#         """
-#         Initialise une des boules de la chenille sur tkinter
-#         """
-#         self.cote = self.cote * fact
-#         xy_xy = circle_to_oval(i*self.cote+self.cote/2, j*self.cote*+self.cote/2, 0.125*self.cote)
-#         chenille_id[index] = (Canva.create_oval(*xy_xy, fill="Green", state="normal", tags="chenille"))
-
 
 def pos_suiv(xi:float, yi: float, xj_1: float, yj_1: float, dist:float):
     """ Calcul de la position des boules"""
@@ -54,19 +45,13 @@ class Chenille_2D:
         x0, y0 = x0-2, y0-2
         for i in range(self.size):
             fact = 1+i*0.05
-            dist = 1*i*0.05
+            dist = 1.33*i*0.05
             xy_xy = circle_to_oval(x0*self.cote+self.cote/2, y0*self.cote+self.cote/2, fact*0.175*self.cote)
             self.chenille_id.append((self.Canva.create_oval(*xy_xy, fill="Green", state="normal", tags="chenille")))
             self.pos.append((x0, y0))
             self.dxy.append(None)
             self.dcst.append(dist)
-        self.Canva.update()
-
-    def influx(self, xi:int, yi:int):
-        """Gère le flux de points dans l'environement 2D"""
-        if(len(self.flux) > 2):
-            self.flux.popleft()
-        self.flux.append((xi,yi))
+           
         
     def deplacement(self, xj_1: float, yj_1: float):
         """
@@ -94,7 +79,6 @@ class Chenille_2D:
             dx, dy = xj-xi, yj-yi
             self.Canva.move(self.chenille_id[idx], dx *self.cote, dy*self.cote)
             
-            #
             idx -= 1
 
     def delete(self):
