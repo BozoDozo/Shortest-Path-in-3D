@@ -1,17 +1,9 @@
 import tkinter as tk
-from menu import cote, Canva, chenille_pos, circle_to_oval, chenille_id
-
-x1
-
-def init_chenille_2D(i: int, j: int, fact: float, index: int):
-    """
-    Initialise la chenille sur tkinter
-    """
-    global chenille_id
-    cote = cote * fact
-    xy_xy = circle_to_oval(i*cote+cote/2, j*cote*+cote/2, 0.125*cote)
-    chenille_id[index] = (Canva.create_oval(*xy_xy, fill="Green", state="hidden", tags="chenille"))
-
+from chenille_2D import Chenille_2D
+from time import sleep
+mobile_2D = None
+Canva = None
+cote = None
 def bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,t):
     """
     Calcule les barycentres des 4 points de controles
@@ -41,6 +33,10 @@ def bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,t):
 
     return x0i,y0i
 
+def get_info(canvas: tk.Canvas, taille_carres: int):
+    global Canva, cote
+    Canva = canvas
+    cote = taille_carres
 
 def trace_beizier_quatre(x0, y0, x1, y1, x2, y2, x3, y3, it, debut=0):
     """
@@ -51,42 +47,38 @@ def trace_beizier_quatre(x0, y0, x1, y1, x2, y2, x3, y3, it, debut=0):
 
     u = debut
     pas = 1/it
-    xh, yh = bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,u)
-    u += pas
-    while() and (u < 1):
+    xi, yi = bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,u)
+    #mobile_2D.deplacement(xi, yi)
+    #u += pas
+    while (u <= 1):
+        
         xi, yi = bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,u)
-        #Tracer OpenGL le point xi, yi
-        dx, dy = xi-xh, yi-yh
-        for boule in range(len(chenille_id)):
-            Canva.move(chenille_id[boule], dx, dy)
-       
-
-
+        mobile_2D.deplacement(xi, yi)
+        u += pas
 
 def trace_beizier(liste_points,it):
     """
     Trace une coube de bézier sur OpenGL, prend en paramètre
     une liste de points
     """
-    global chenille_pos
+    global mobile_2D
     n = len(liste_points)
-    for idx in range(7):
-        init_chenille_2D(*liste_points[0],1-idx*.125,idx)
-
-    
     if(n < 4):
         print("Pas assez de points")
         return -1
 
+    mobile_2D = Chenille_2D(*liste_points[0], 7, Canva, cote)
     n_hors  = (n - 4)%3 #n_hors donne le nombre de points qui ne sont
                         # pas dans un quadruplet
 
-    n_int = n-n_hors
-
+    n_int = n-n_hors-1
     #On trace la courbe pour le cas général
-    for i in range(0, n_int, 3):
+    #for i in range(0, n_int, 3):
+    i = 0
+    while( i < n_int):
         trace_beizier_quatre(*liste_points[i],*liste_points[i+1],
                                     *liste_points[i+2], *liste_points[i+3],it)
+        i+=3
 
     #On vérifie que l'on ne se trouve pas dans le cas particulier où
     # il n'y que 4 points dans la liste
@@ -104,3 +96,6 @@ def trace_beizier(liste_points,it):
                                         *liste_points[-2], *liste_points[-1],
                                                                        it, 0.75)
         #Trace sur OpenGL le dernier point de la courbe
+        mobile_2D.deplacement(*liste_points[-1])
+      
+    mobile_2D.delete()

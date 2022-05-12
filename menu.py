@@ -1,14 +1,13 @@
-from ast import Global
 import tkinter as tk
+import numpy as np
 from tkinter import  filedialog
 from save import lire_matrice
 from save import ecrire_matrice
 from map import generation_matrice_terrain
-from map import min_max_matrix
 from dijkstra import dijkstra, a_star
-import numpy as np
-
-
+from bezier import trace_beizier, get_info
+from utils import get_color,rgb_to_hex, circle_to_oval, get_info_matrice
+from map import min_max_matrix
 # Variable Gloables
 matrice   = np.matrix([[np.inf, 3., 5., 5., 8., 6., 7., 3., 3., np.inf],
            [4., 5., 5., 5., 6., 6., 7., 3., 3., np.inf],
@@ -38,13 +37,12 @@ depart = None
 arrivee = None
 depart_id = None
 arrivee_id = None
+trajet = []
 trajet_dijkstra = []
 id_dijkstra = []
 trajet_a_star = []
 id_a_star = []
 #####################
-chenille = []
-chenille_id = [-1, -1, -1, -1, -1, -1, -1]
 texte_aide = """Barre d'outils:
     -Ouvir -> Pour selectionner et charger une matrice
     -Sauver -> Sauvegarder la matrice affichée à l'écran
@@ -65,63 +63,20 @@ Quitter: Quitte le programme
     
 Chemin: Début de l'algorithme de recherche de chemin, Inactif si les deux points ne sont pas sélectionnés
     """
-# Fonction Utilitaires
+
+
+
+
+
 def maj_min_max():
     """
     Mise à jour des valeurs minimales et maximales de la matrice
     """
     global min_value, max_value
     min_value, max_value = min_max_matrix(matrice)
-
-def normalisation(valeur: float ) -> float:
-    """
-    Normalise d'une valeur en fonction du minimum et du maximum
-    """
-    if( (denominateur := max_value - min_value) == 0):
-        denominateur = min_value
-    return (valeur-min_value)/(denominateur)
+    get_info_matrice(min_value, max_value, matrice)
 
 
-def hex_to_rgb(value: str)-> tuple:
-    """Return (red, green, blue) for the color given as #rrggbb."""
-    value = value.lstrip('#')
-    lv = len(value)
-    return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
-
-def rgb_to_hex(red: int, green: int, blue: int):
-    """Return color as #rrggbb for the given color values."""
-    return '#%02x%02x%02x' % (red, green, blue)
-
-def shade_color(color: tuple, factor:float) -> list:
-        """
-        Retourne la couleur rgb assombri ou éclaircir
-        """
-        shaded_color= []
-        for c in color:
-            x = int(c * factor)
-            if(x > 255):
-                x = 255
-            if(x < 0):
-                x = 0
-            shaded_color.append(x)
-        return shaded_color
-
-def get_color(val: float) -> str:
-    """
-    Récupère la couleur en niveau de gris
-    pour une intensité donnée
-    """
-    if val == np.inf or val == np.NaN:
-        color = (50,50,255)
-    else:
-        norm = normalisation(val)
-        color = shade_color((255, 255, 255), 1-norm)
-    return rgb_to_hex(*color)
-
-def circle_to_oval(x: int, y: int, r: int):
-    """Permet la construction d'un cercle à partir
-    en utilisant la construction d'un ovale"""
-    return (x-r, y-r, x+r, y+r)
 # Fonction pour les boutons
 def ouvrir_matrice():
     """
@@ -214,6 +169,7 @@ def actu_matrice():
     ht = cote*l
     wt = cote*l
     Canva.config(width=wt, height=ht)
+    maj_min_max()
     for i in range(l):
         for j in range(c):
             couleur = get_color(matrice[i,j])
@@ -222,6 +178,8 @@ def actu_matrice():
                 Canva.create_rectangle(i*cote, j*cote,i*cote+cote, j*cote+cote, fill= couleur, tags=("inf", str((i,j))))
             else:
                 Canva.create_rectangle(i*cote, j*cote,i*cote+cote, j*cote+cote, fill= couleur, tags=("point", str((i,j))))
+    bouton_chemin.config(state="disabled")
+    bouton_animation.config(state="disabled")
 
 # Fonction Selection de points
 
@@ -290,6 +248,7 @@ def deselec(event = None):
     Canva.tag_bind("point","<1>", selec_depart)
     Canva.tag_bind("point", "<2>", ajout_obstacle)
     bouton_chemin.config(state="disabled")
+    bouton_animation.config(state="disabled")
 
 def ajout_obstacle(event = None):
     """
@@ -328,29 +287,33 @@ def chemin(event = None):
     """
     global trajet_dijkstra, id_dijkstra, id_a_star, trajet_a_star
     algo_chemin = algo.get() 
-    trajet_dijkstra = a_star(matrice, depart, arrivee)
-    trajet_a_star = dijkstra(matrice, depart, arrivee)
+    trajet_dijkstra = dijkstra(matrice, depart, arrivee)
+    trajet_a_star = a_star(matrice, depart, arrivee)
+    # Traçage des chemins en caché
     for point in range(1,len(trajet_dijkstra)-1):
         i, j = trajet_dijkstra[point]
-        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
-        id_dijkstra.append(Canva.create_oval(*xy_xy, fill="green", state="hidden", tags=("dij", str((i,j)))))
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
+        id_dijkstra.append(Canva.create_oval(*xy_xy, fill="blue", state="hidden", tags=("dij", str((i,j)))))
     for point in range(1,len(trajet_a_star)-1):
         i, j = trajet_a_star[point]
-        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
         id_a_star.append(Canva.create_oval(*xy_xy, fill="purple", state="hidden", tags=("a_", str((i,j)))))
-
+    # On affiche le chemin sélectionné
     if(algo_chemin):
         print("A*")
         Canva.itemconfig("a_", state='normal')
     else:
         print("Dijkstra")
         Canva.itemconfig("dij", state='normal')
-        
     
     bouton_chemin.config(state="disabled")
+    bouton_animation.config(state="normal")
 
 
 def cacher_chemin(event = None):
+    """
+    Cache le chemin qui n'est pas sélectionné
+    """
     if(algo.get()):
         Canva.itemconfig("a_", state='normal')
         Canva.itemconfig("dij", state='hidden')
@@ -360,6 +323,22 @@ def cacher_chemin(event = None):
         Canva.itemconfig("dij", state='normal')
         Canva.itemconfig("a_", state='hidden')
         print("Dijkstra")
+    
+def animation_2D(event = None):
+    """
+    Lance le mobile 2D sur le canvas dans tkinter
+    """
+    global trajet
+    if(algo.get()):
+        trajet = trajet_a_star
+    
+    else:
+        trajet = trajet_dijkstra
+    get_info(Canva, cote)
+    print(trajet)
+    trace_beizier(trajet, 100)
+    
+
 # Initialisation des fenêtres
 win = tk.Tk()
 win.title("Plan du terrain")
@@ -387,12 +366,14 @@ Canva = tk.Canvas(win)
 bottom_frame = tk.Frame(win)
 # Lancement de la recherche de chemin
 bouton_chemin = tk.Button(bottom_frame, text= "Chemin", state="disabled", width=20, height= 5, command=chemin)
+# Quitter
 bouton_quitter = tk.Button(bottom_frame, text= "Quitter", width=20, height= 5, command=lambda:exit(0))
-
-radio_frame = tk.Frame(bottom_frame)
-
-tk.Radiobutton(radio_frame, text="Dijkstra", indicatoron=0, command =cacher_chemin, variable=algo, value= 0).pack(side="left")
-tk.Radiobutton(radio_frame, text="A*",indicatoron=0, variable=algo, command =cacher_chemin, value= 1).pack(side="left")
+# Lancement du mobile 2D
+bouton_animation = tk.Button(bottom_frame, text= "Animation", state="disabled", width=20, height= 5, command=animation_2D)
+# Radio button
+radio_frame = tk.Frame(bottom_frame, width=20)
+tk.Radiobutton(radio_frame, padx=10, pady=30, text="Dijkstra", indicatoron=0, command =cacher_chemin, variable=algo, value= 0).pack(side="left")
+tk.Radiobutton(radio_frame, padx=10, pady=30,text="A*",indicatoron=0, variable=algo, command =cacher_chemin, value= 1).pack(side="left")
 # Disposition des Widgets
 bouton_charger.pack(side="left", expand=True)
 bouton_sauver.pack(side="left", expand=True)
@@ -403,6 +384,7 @@ top_frame.pack(side="top", fill=tk.X)
 Canva.pack(side="top")
 
 bouton_chemin.pack(side="right")
+bouton_animation.pack(side="right")
 radio_frame.pack(side ="right")
 bouton_quitter.pack(side="left")
 bottom_frame.pack(side="bottom", fill=tk.X)

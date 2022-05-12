@@ -1,15 +1,10 @@
 from heapq import heappush, heappop
 import numpy as np
-from math import sqrt
-
+from utils import distance_eucl
 
 # approximation de la racine de 2
 sqr2 = 1.41
-def distance_eucl(x0: float, y0: float, x1: float, y1: float):
-    """
-    Calcule la distance euclidienne entre 2 points
-    """
-    return sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0))
+
 def voisin_dijkstra(matrice: np.matrix, i: int, j: int ) -> list:
     """
     Renvoie la liste des voisins d'un élément de la matrice
@@ -86,7 +81,7 @@ def dijkstra(matrice: np.matrix, depart: tuple,
                 voisin_cout, voisin_coords = voisin
                 if(voisin_coords not in visite):
                     # On calcule le cout pour passer au voisin
-                    cout_suiv = voisin_cout + cout + distance_eucl(*courant, *voisin_coords)
+                    cout_suiv = voisin_cout + cout
                     heappush(tas, (cout_suiv, voisin_coords))
                     # Si le cout cumulé pour aller au voisin
                     if(cout_cumul[voisin_coords] > cout_suiv):
