@@ -84,18 +84,21 @@ def dijkstra(matrice: np.matrix, depart: tuple,
             for voisin in liste_voisin:
                 # On recupere les coordonnees et le cout du voisin
                 voisin_cout, voisin_coords = voisin
-                # On calcule le cout pour passer au voisin
-                cout_suiv = voisin_cout + cout
-                # Si le cout cumulé pour aller au voisin
-                if(cout_cumul[voisin_coords] > cout_suiv):
+                if(voisin_coords not in visite):
+                    # On calcule le cout pour passer au voisin
+                    cout_suiv = voisin_cout + cout + distance_eucl(*courant, *voisin_coords)
                     heappush(tas, (cout_suiv, voisin_coords))
-                    cout_cumul[voisin_coords] = cout_suiv
-                    prec[voisin_coords] = courant
+                    # Si le cout cumulé pour aller au voisin
+                    if(cout_cumul[voisin_coords] > cout_suiv):
+                        heappush(tas, (cout_suiv, voisin_coords))
+                        cout_cumul[voisin_coords] = cout_suiv
+                        prec[voisin_coords] = courant
         # On recupere le prochain sommet avec un cout minimal
         cout, courant = heappop(tas)
-    if tas == []:
+    if courant != arrivee or cout == np.inf:
         print("Pas de chemin")
         return [()]
+    print("cout: Dijkstra",cout)
     while(courant != depart):
         chemin.append(courant)
         courant = tuple(prec[courant])
@@ -147,19 +150,20 @@ def a_star(matrice: np.matrix, depart: tuple,
             for voisin in liste_voisin:
                 # On recupere les coordonnees et le cout du voisin
                 voisin_cout, voisin_coords = voisin
-                # On calcule le cout pour passer au voisin
-                dis = sqrt(voisin_coords[0]**2+voisin_coords[1]**2)
-                cout_suiv = voisin_cout + cout + distance_eucl(*courant, *voisin_coords)
-                # Si le cout cumulé pour aller au voisin
-                if(cout_cumul[voisin_coords] > cout_suiv):
+                if(voisin_coords not in visite):
+                    # On calcule le cout pour passer au voisin
+                    cout_suiv = (voisin_cout + cout )+ distance_eucl(*arrivee, *voisin_coords)
                     heappush(tas, (cout_suiv, voisin_coords))
-                    cout_cumul[voisin_coords] = cout_suiv
-                    prec[voisin_coords] = courant
+                    # Si le cout cumulé pour aller au voisin
+                    if(cout_cumul[voisin_coords] > cout_suiv):
+                        cout_cumul[voisin_coords] = cout_suiv
+                        prec[voisin_coords] = courant
         # On recupere le prochain sommet avec un cout minimal
         cout, courant = heappop(tas)
-    if tas == []:
+    if courant != arrivee or cout == np.inf:
         print("Pas de chemin")
         return [()]
+    print("cout: A*",cout)
     while(courant != depart):
         chemin.append(courant)
         courant = tuple(prec[courant])

@@ -1,3 +1,4 @@
+from ast import Global
 import tkinter as tk
 from tkinter import  filedialog
 from save import lire_matrice
@@ -245,7 +246,7 @@ def selec_depart(event = None):
     j = int(coords[1][1:-1])
     depart = (i,j)
     # Calcul de points pour créer un cercle au centre du carré
-    xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
+    xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
     depart_id = Canva.create_oval(*xy_xy, fill="red",tags=("depart", str((i,j))))
     Canva.tag_unbind("point","<1>")
     Canva.tag_bind("point","<1>",selec_arrivee)
@@ -265,7 +266,7 @@ def selec_arrivee(event = None):
     if(depart != (i,j)):
         arrivee = (i,j)
         # Calcul de points pour créer un cercle au centre du carré
-        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
         arrivee_id = Canva.create_oval(*xy_xy, fill="red",tags=("arrivee", str((i,j))))
         Canva.tag_unbind("point", "<1>")
         bouton_chemin.config(state="normal")
@@ -294,6 +295,7 @@ def ajout_obstacle(event = None):
     """
     Ajout d'obstacle directement sur le terrain
     """
+    global matrice
     id = Canva.find_withtag("current")
     tags = Canva.gettags(id)
     coords = tags[1].split(',')
@@ -302,6 +304,7 @@ def ajout_obstacle(event = None):
     j = int(coords[1][1:-1])
     Canva.delete(id)
     Canva.create_rectangle(i*cote, j*cote,i*cote+cote, j*cote+cote, fill= rgb_to_hex(*(50,50,255)), tags=("inf", str((i,j))))
+    matrice[i,j] = np.inf
 
 def afficher_aide(event = None):
     """
@@ -329,11 +332,11 @@ def chemin(event = None):
     trajet_a_star = dijkstra(matrice, depart, arrivee)
     for point in range(1,len(trajet_dijkstra)-1):
         i, j = trajet_dijkstra[point]
-        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
         id_dijkstra.append(Canva.create_oval(*xy_xy, fill="green", state="hidden", tags=("dij", str((i,j)))))
     for point in range(1,len(trajet_a_star)-1):
         i, j = trajet_a_star[point]
-        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
         id_a_star.append(Canva.create_oval(*xy_xy, fill="purple", state="hidden", tags=("a_", str((i,j)))))
 
     if(algo_chemin):
@@ -351,10 +354,12 @@ def cacher_chemin(event = None):
     if(algo.get()):
         Canva.itemconfig("a_", state='normal')
         Canva.itemconfig("dij", state='hidden')
+        print("A*")
     
     else:
         Canva.itemconfig("dij", state='normal')
         Canva.itemconfig("a_", state='hidden')
+        print("Dijkstra")
 # Initialisation des fenêtres
 win = tk.Tk()
 win.title("Plan du terrain")
