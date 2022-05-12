@@ -1,12 +1,23 @@
+import tkinter as tk
+from menu import cote, Canva, chenille_pos, circle_to_oval, chenille_id
+
+x1
+
+def init_chenille_2D(i: int, j: int, fact: float, index: int):
+    """
+    Initialise la chenille sur tkinter
+    """
+    global chenille_id
+    cote = cote * fact
+    xy_xy = circle_to_oval(i*cote+cote/2, j*cote*+cote/2, 0.125*cote)
+    chenille_id[index] = (Canva.create_oval(*xy_xy, fill="Green", state="hidden", tags="chenille"))
 
 def bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,t):
     """
     Calcule les barycentres des 4 points de controles
     avec un coefficient t
     """
-
     #Generation 1
-
     x0i = (1 - t) * x0 + x1 * t
     y0i = (1 - t) * y0 + y1 * t
     x1i = (1 - t) * x1 + x2 * t
@@ -16,9 +27,7 @@ def bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,t):
 
     x0, y0, x1, y1,x2, y2 = x0i,y0i,x1i,y1i,x2i,y2i
 
-
     #Generation 2
-
     x0i = (1 - t) * x0 + x1 * t
     y0i = (1 - t) * y0 + y1 * t
     x1i = (1 - t) * x1 + x2 * t
@@ -26,9 +35,7 @@ def bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,t):
 
     x0, y0, x1, y1 = x0i,y0i,x1i,y1i
 
-
     #Generation 3
-
     x0i = (1 - t) * x0 + x1 * t
     y0i = (1 - t) * y0 + y1 * t
 
@@ -44,11 +51,15 @@ def trace_beizier_quatre(x0, y0, x1, y1, x2, y2, x3, y3, it, debut=0):
 
     u = debut
     pas = 1/it
-    while(u < 1):
+    xh, yh = bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,u)
+    u += pas
+    while() and (u < 1):
         xi, yi = bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,u)
         #Tracer OpenGL le point xi, yi
-        u += pas
-
+        dx, dy = xi-xh, yi-yh
+        for boule in range(len(chenille_id)):
+            Canva.move(chenille_id[boule], dx, dy)
+       
 
 
 
@@ -57,8 +68,12 @@ def trace_beizier(liste_points,it):
     Trace une coube de bézier sur OpenGL, prend en paramètre
     une liste de points
     """
+    global chenille_pos
     n = len(liste_points)
+    for idx in range(7):
+        init_chenille_2D(*liste_points[0],1-idx*.125,idx)
 
+    
     if(n < 4):
         print("Pas assez de points")
         return -1

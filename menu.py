@@ -6,6 +6,8 @@ from map import generation_matrice_terrain
 from map import min_max_matrix
 from dijkstra import dijkstra, a_star
 import numpy as np
+
+
 # Variable Gloables
 matrice   = np.matrix([[np.inf, 3., 5., 5., 8., 6., 7., 3., 3., np.inf],
            [4., 5., 5., 5., 6., 6., 7., 3., 3., np.inf],
@@ -39,6 +41,9 @@ trajet_dijkstra = []
 id_dijkstra = []
 trajet_a_star = []
 id_a_star = []
+#####################
+chenille = []
+chenille_id = [-1, -1, -1, -1, -1, -1, -1]
 texte_aide = """Barre d'outils:
     -Ouvir -> Pour selectionner et charger une matrice
     -Sauver -> Sauvegarder la matrice affichée à l'écran
@@ -276,10 +281,8 @@ def deselec(event = None):
         Canva.delete(depart_id)
     if(arrivee_id):
         Canva.delete(arrivee_id)
-    for id_ in id_dijkstra:
-        Canva.delete(id_)
-    for id_ in id_a_star:
-        Canva.delete(id_)
+    Canva.delete("dij")
+    Canva.delete("a_")
     
     depart_id = None
     arrivee_id = None
