@@ -54,7 +54,7 @@ def trace_beizier_quatre(x0, y0, x1, y1, x2, y2, x3, y3, it, debut=0):
         sleep(0.01)
         u += pas
 
-def trace_beizier(liste_points,it):
+def trace_beizier(liste_points:list, it: int, _2D: Chenille_2D):
     """
     Trace une coube de bézier sur OpenGL, prend en paramètre
     une liste de points
@@ -64,8 +64,8 @@ def trace_beizier(liste_points,it):
     if(n < 4):
         print("Pas assez de points")
         return -1
-
-    mobile_2D = Chenille_2D(*liste_points[0], 7, Canva, cote)
+    mobile_2D = _2D
+    #mobile_2D = Chenille_2D(*liste_points[0], 7, Canva, cote)
     n_hors  = (n - 4)%3 # n_hors donne le nombre de points qui ne sont
                         # pas dans un quadruplet
 

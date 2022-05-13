@@ -6,8 +6,9 @@ from save import ecrire_matrice
 from map import generation_matrice_terrain
 from dijkstra import dijkstra, a_star
 from bezier import trace_beizier, get_info
-from utils import get_color,rgb_to_hex, circle_to_oval, get_info_matrice, green_to_brown_gradient_maping
+from utils import rgb_to_hex, circle_to_oval, get_info_matrice, green_to_brown_gradient_maping
 from map import min_max_matrix
+from chenille_2D import Chenille_2D
 # Variable Gloables
 matrice   = np.matrix([[np.inf, 3., 5., 5., 8., 6., 7., 3., 3., np.inf],
            [4., 5., 5., 5., 6., 6., 7., 3., 3., np.inf],
@@ -42,6 +43,8 @@ trajet_dijkstra = []
 id_dijkstra = []
 trajet_a_star = []
 id_a_star = []
+#####################
+mobile_2D = None
 #####################
 texte_aide = """Barre d'outils:
     -Ouvir -> Pour selectionner et charger une matrice
@@ -165,7 +168,6 @@ def actu_matrice():
     l, c = matrice.shape
     cote = 500/l
     Canva.delete(tk.ALL)
-    
     ht = cote*l
     wt = cote*l
     Canva.config(width=wt, height=ht)
@@ -332,8 +334,9 @@ def animation_2D(event = None):
     """
     Lance le mobile 2D sur le canvas dans tkinter
     """
-    global trajet
+    global trajet, mobile_2D
     bouton_animation.config(state='disabled')
+    bouton_stop.config(state='normal')
     if(algo.get()):
         trajet = trajet_a_star
     
@@ -341,9 +344,23 @@ def animation_2D(event = None):
         trajet = trajet_dijkstra
     get_info(Canva, cote)
     print(trajet)
-    trace_beizier(trajet, 100)
+    mobile_2D = Chenille_2D(*trajet[0], 10, Canva, cote)
+    # Permet la destruction du mobile 2D
+    try:
+        trace_beizier(trajet, 100, mobile_2D)
+    except IndexError:
+        print("Mobile 2D détruit")
     bouton_animation.config(state='normal')
+    bouton_stop.config(state='disabled')
     
+def stop(event= None):
+    """
+    Détruit le mobile 2D pour mettre fin à l'animation
+    """
+    global mobile_2D
+    mobile_2D.delete()
+    bouton_stop.config(state='disabled')
+    bouton_animation.config(state='normal')
 
 # Initialisation des fenêtres
 win = tk.Tk()
@@ -376,6 +393,8 @@ bouton_chemin = tk.Button(bottom_frame, text= "Chemin", state="disabled", width=
 bouton_quitter = tk.Button(bottom_frame, text= "Quitter", width=20, height= 5, command=lambda:exit(0))
 # Lancement du mobile 2D
 bouton_animation = tk.Button(bottom_frame, text= "Animation", state="disabled", width=20, height= 5, command=animation_2D)
+# Bouton Stop
+bouton_stop = tk.Button(bottom_frame, text= "Stop", state="disabled", width=20, height= 5, command=stop)
 # Radio button
 radio_frame = tk.Frame(bottom_frame, width=20)
 tk.Radiobutton(radio_frame, padx=10, pady=30, text="Dijkstra", indicatoron=0, command =cacher_chemin, variable=algo, value= 0).pack(side="left")
@@ -391,6 +410,7 @@ Canva.pack(side="top")
 
 bouton_chemin.pack(side="right")
 bouton_animation.pack(side="right")
+bouton_stop.pack(side="right")
 radio_frame.pack(side ="right")
 bouton_quitter.pack(side="left")
 bottom_frame.pack(side="bottom", fill=tk.X)

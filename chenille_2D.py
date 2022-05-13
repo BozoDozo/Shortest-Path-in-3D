@@ -33,8 +33,6 @@ class Chenille_2D:
             raise ValueError("taille des carrés non initialisée")
         # Tableau pour stocker l'id des boules
         self.chenille_id =[]
-        # Tableau des disntaces
-        self.dxy = []
         # File pour récupérer les point des bézier courants
         self.flux = deque()
         # Distance constantes entre chaque boules
@@ -44,12 +42,11 @@ class Chenille_2D:
         # Initialisation des boules
         x0, y0 = x0-2, y0-2
         for i in range(self.size):
-            fact = 1+i*0.05
-            dist = 1.33*i*0.05
-            xy_xy = circle_to_oval(x0*self.cote+self.cote/2, y0*self.cote+self.cote/2, fact*0.175*self.cote)
+            dist = 1*i*0.05+0.175
+            rayon = dist*self.cote
+            xy_xy = circle_to_oval(x0*self.cote+self.cote/2, y0*self.cote+self.cote/2, rayon)
             self.chenille_id.append((self.Canva.create_oval(*xy_xy, fill="Green", state="normal", tags="chenille")))
             self.pos.append((x0, y0))
-            self.dxy.append(None)
             self.dcst.append(dist)
            
         
@@ -60,13 +57,10 @@ class Chenille_2D:
         """
         # Déplacement de la tête
         # Calcul du vecteur tête
-        print(self.pos[-1])
-        print(xj_1, yj_1)
         dx, dy = xj_1-self.pos[-1][0], yj_1-self.pos[-1][1]
         # On multiplie par la taille des carres pour avoir les bons repères
         self.Canva.move(self.chenille_id[-1],dx *self.cote, dy*self.cote)
         self.pos[-1] = xj_1, yj_1
-        print(self.pos[-1])
         idx = -2
         while(idx > (-self.size)-1):
             # On récupère la position de la prochaine boule
@@ -83,6 +77,10 @@ class Chenille_2D:
 
     def delete(self):
         self.Canva.delete("chenille")
+        self.chenille_id = []
+        self.pos = []
+        self.dcst = []
+        self.Canva = None
 
     
 

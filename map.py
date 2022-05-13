@@ -10,9 +10,8 @@ import numpy as np
 
 def min_max_matrix(matrice: np.matrix) -> tuple:
     """
-    Retourne la valeur minimale d'une matrice
+    Retourne la valeur minimale et maximale de la matrice
     """
-    #print(matrice)
     val_min = np.inf
     val_max = 0
     l, c = matrice.shape
@@ -58,8 +57,9 @@ def ajout_obstacle(matrice: np.matrix, indice: int = 0):
     if(indice >= len(val)):
         indice = len(val)-1
     l, c = matrice.shape
+    # Le seuil dépend de la postition dans le tableau ordonné des
+    # des valeurs uniques de la matrice 
     seuil = val[indice]
-    #print(matrice)
     for i in range(l):
         for j in range(c):
             if(matrice[i,j] <= seuil):
