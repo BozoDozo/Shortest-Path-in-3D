@@ -85,7 +85,6 @@ def dijkstra(matrice: np.matrix, depart: tuple,
                     heappush(tas, (cout_suiv, voisin_coords))
                     # Si le cout cumulé pour aller au voisin
                     if(cout_cumul[voisin_coords] > cout_suiv):
-                        heappush(tas, (cout_suiv, voisin_coords))
                         cout_cumul[voisin_coords] = cout_suiv
                         prec[voisin_coords] = courant
         # On recupere le prochain sommet avec un cout minimal

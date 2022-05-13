@@ -49,7 +49,6 @@ def shade_color(color: tuple, factor:float) -> list:
             shaded_color.append(x)
         return shaded_color
 
-
 def normalisation(valeur: float) -> float:
     """
     Normalise d'une valeur en fonction du minimum et du maximum dans une matrice
@@ -69,6 +68,37 @@ def get_color(val: float) -> str:
         norm = normalisation(val)
         color = shade_color((255, 255, 255), 1-norm)
     return rgb_to_hex(*color)
+
+
+
+def green_to_brown_gradient_maping(val: float):
+    """
+    Prend entrée une valeur entre 0 et 1
+    et renvoie selon son intensité une couleur
+    entre le vert et le marron
+    """
+    val = normalisation(val)
+    rgb =[f_r(val),f_g(val),f_b(val)]
+    i = 0
+    # Si la valeur 255 ou 0 est dépassé
+    while i < 3:
+        if(rgb[i] > 255):
+            rgb[i] =255
+        if(rgb[i] < 0):
+            rgb[i] = 0
+        i+=1
+    return rgb_to_hex(*rgb)
+# Ces fonctions ont été trouvé par approximation d'un tracé
+# de courbe sur 40 valeurs avec x variant de 0 à 1
+# y valeur rgb variant du vert au marron
+def f_r(x: float)->int:
+    return int(-109.992*x*x+184.479*x+106.805)
+
+def f_g(x: float)->int:
+    return int(19.7949*x*x-62.9947*x+171.313)
+
+def f_b(x: float)->int:
+    return int(34.8157*x*x-54.7612*x+10.5841)
 
 def circle_to_oval(x: int, y: int, r: int):
     """Permet la construction d'un cercle à partir

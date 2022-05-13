@@ -6,7 +6,7 @@ from save import ecrire_matrice
 from map import generation_matrice_terrain
 from dijkstra import dijkstra, a_star
 from bezier import trace_beizier, get_info
-from utils import get_color,rgb_to_hex, circle_to_oval, get_info_matrice
+from utils import get_color,rgb_to_hex, circle_to_oval, get_info_matrice, green_to_brown_gradient_maping
 from map import min_max_matrix
 # Variable Gloables
 matrice   = np.matrix([[np.inf, 3., 5., 5., 8., 6., 7., 3., 3., np.inf],
@@ -114,7 +114,7 @@ def modif_parametre():
     tk.Scale(win_2, label="Borne supérieur des valeurs", from_=2, to_=1000, variable=born,length="10c", orient="horizontal").pack(side="top")
     tk.Scale(win_2, label="Taux d’aplatissement des valeurs", from_=0, to_=10, variable=flat, length="10c", orient="horizontal").pack(side="top")
     tk.Checkbutton(win_2, text= "Présence d'obstacles", variable=obs).pack(side="top")
-    tk.Scale(win_2, label="Seuil des d’obstacles", from_=0, to_=5, variable=cran, length="10c", orient="horizontal").pack(side="top")
+    tk.Scale(win_2, label="Seuil des d’obstacles", from_=0, to_=50, variable=cran, length="10c", orient="horizontal").pack(side="top")
     # Choix Algo chemin
     radio_frame = tk.Frame(win_2)
     radio_frame.pack(side="top")
@@ -172,9 +172,13 @@ def actu_matrice():
     maj_min_max()
     for i in range(l):
         for j in range(c):
-            couleur = get_color(matrice[i,j])
+            #couleur = get_color(matrice[i,j])
+            if(flag:= (val := matrice[i,j]) == np.inf):
+                couleur = "#0033CC"
+            else :
+                couleur = green_to_brown_gradient_maping(val)
     # Les obstacles et valeurs finis ne sont pas traités de la même manière
-            if(matrice[i,j] == np.inf):
+            if(flag):
                 Canva.create_rectangle(i*cote, j*cote,i*cote+cote, j*cote+cote, fill= couleur, tags=("inf", str((i,j))))
             else:
                 Canva.create_rectangle(i*cote, j*cote,i*cote+cote, j*cote+cote, fill= couleur, tags=("point", str((i,j))))
@@ -329,6 +333,7 @@ def animation_2D(event = None):
     Lance le mobile 2D sur le canvas dans tkinter
     """
     global trajet
+    bouton_animation.config(state='disabled')
     if(algo.get()):
         trajet = trajet_a_star
     
@@ -337,6 +342,7 @@ def animation_2D(event = None):
     get_info(Canva, cote)
     print(trajet)
     trace_beizier(trajet, 100)
+    bouton_animation.config(state='normal')
     
 
 # Initialisation des fenêtres
