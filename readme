@@ -1,17 +1,46 @@
 
--cahier des charge
+cahier des charge
 
-truc a faire:
+    1codage, sauvegarde et chargement d’une matrice à valeurs entières,
+    réaliser:100%
 
+    2choix d’un point de départ et d’un point d’arrivée, application des
+    algorithmes de Dijkstra et A* et mémorisation des résultats,
+    réaliser:100%
 
-    1-codage, sauvegarde et chargement d’une matrice à valeurs entières,
-    2-choix d’un point de départ et d’un point d’arrivée,
-    3-application des algorithmes de Dijkstra et A* et mémorisation des résultats,
+    3affichage de la matrice sous la forme d’un terrain en élévation,
+    réaliser: 100%
 
-    5-déplacement d’un mobile le long des chemins trouvés (de préférence sous la forme d’un ver) dont les mouvements seront calculés par l’intermédiaire d’une courbe de Bézier cubique,
-		bonus+16
-		6-gestion de la caméra,
-    7-plaquage de textures (terrain, ver),
+    4déplacement d’un mobile le long de l’un des chemins trouvés au choix
+    (de préférence sous la forme d’un ver, sinon modélisé par une simple sphère)
+     dont les mouvements seront calculés par l’intermédiaire d’une succession de
+     courbes de Bézier cubique,
+     réaliser: 100%
 
-fait :
-4-affichage de la matrice sous la forme d’un terrain en élévation,
+    5ajout d’un obstacle infranchissable dans la génération du terrain et pris en
+    compte par les algorithmes de recherche de chemin,
+    réaliser:100%
+
+    6gestion d’une caméra offrant une vue générale et des mouvements en translation,
+     rotation et zoom (sans utiliser glutSpaceball*),
+     réaliser:100%
+
+    7représentation des obstacles infranchissables sous la forme de zones aquatiques
+     (ou équivalents),
+
+    8suivi du mouvement du mobile par la caméra durant son parcours du chemin,
+    réaliser: 80%
+    commentaire: il suit la camera mais pas jolie
+
+    9application de textures (terrain et mobile).
+
+présentation :
+  nous présentons ici notre projet du plus court chemin melengeant a la fois
+  tkinter et opengl. le but étant de déplacer un mobile parcourant le chemine le
+  plus court entre deux point en fonction de cout. ce chemine trouvé gràce a un
+  aglorithme de djikstra ou astar et tracer par une courbe de bezier.
+ une partie tkinter ou l'on peut ajouter des obstacle,agrandir la map et d'autre
+ parametre. un bouton animation sera a votre dispositon pour voir en temp réel
+ le chemin le plus avec une chenille.
+  de plus vous avez la possibilite grace a un bouton d'ouvrir opengl pour voir
+  le terrain en 3D vous pouvez lance l'animation grace au la toucha 'a'
