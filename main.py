@@ -1,474 +1,478 @@
-#!/usr/bin/python2.7
-# -*- coding: utf-8 -*-
-
-###############################################################
-# portage de planet.c
-from map import *
-from animation import *
-
-from time import sleep
-###############################################################
-
-# Variables Globales
-cpt = 0
-cpt_x = 0
-cpt_y = 0
-# cpt pour translate
-cpt_translate = 0
-# postitionement
-x_pos, y_pos, z_pos = 0, 0, 0
-
-eye_angle_x, eye_angle_y, eye_angle_z = 315, 50, 210
-eye = [0, 0, 50]
-center = [10, 0, 10]
-up_vec = [1, 1, 0]
-
-# Couleurs
-diffuse = [0.7, 0.7, 0.7, 1.0]
-specular = [0.001, 0.001, 0.001, 1.0]
-pos = [1, 1, -1, 0]
-
-anim = False
-anim_bouton = False
-quadric = None
-DISPLAY_GRID = False
-rotate_x = 30
-rotate_y = 15
-translate_z = 4
-# normals
-normal = []
-normals = 0
-chemin = []
-# depart arriver
-depart_open = None
-arrivee_open = None
-############################################################## #
-n = 10
-matrice_map = []
-trajet_open = []
+import tkinter as tk
+import numpy as np
+from tkinter import filedialog
+from save import lire_matrice
+from save import ecrire_matrice
+from map import generation_matrice_terrain
+from dijkstra import dijkstra, a_star
+from bezier import trace_beizier, get_info
+from utils import rgb_to_hex, circle_to_oval, get_info_matrice, green_to_brown_gradient_maping
+from map import min_max_matrix
+from chenille_2D import Chenille_2D
+from modelisation_3D import opengl
+# Variable Gloables
+matrice = np.matrix([[np.inf, 3., 3., 5., 3., 5., 3., 3., 3., np.inf],
+                     [4., 5., 5., 5., 5., 5., 3., 6., 5., np.inf],
+                     [5., 4., 4., 4., 6., 7., 8., 7., 3., np.inf],
+                     [6., 5., 5., 4., 3., 6., 9., 8., 3., 7.],
+                     [7., 3., 7., 6., 6., 6., 7., 8., 3., 7.],
+                     [6., 3., 7., 7., 7., 5., 7., 4., 3., np.inf],
+                     [8., 3., 8., 7., 7., 6., 6., np.inf, np.inf, np.inf],
+                     [4., 5., 5., 8., 8., 6., 6., 6., 4., np.inf],
+                     [3., 5., 5., 6., 6., 6., 6., 5., 4., np.inf],
+                     [np.inf, 4., 4., 5., 5., 6., 6., 6., 5., 3.]])
 
 
-# matrice_map=tukey(matrice_map)
+taille_matrice = 10
+borne = 10
+flat_niv = 1
+obstacle_bool = False
+seuil_obstacle = 0
+#####################
+min_value = 0
+max_value = 10
+#####################
+Canva = None
+cote = 50
+#####################
+depart = None
+arrivee = None
+depart_id = None
+arrivee_id = None
+trajet = []
+trajet_dijkstra = []
+id_dijkstra = []
+trajet_a_star = []
+id_a_star = []
+#####################
+mobile_2D = None
+#####################
+texte_aide = """Barre d'outils:
+    -Ouvir -> Pour selectionner et charger une matrice
+    -Sauver -> Sauvegarder la matrice affichée à l'écran
+    -Paramètres -> Permet de modifier les paramètres de génération de matrice et de choisir l'algorithme de recherche de chemin
+    -Générer -> Génère une matrice aléatoire avec les paramètres actuels
+    -Aide -> Affiche l'aide
+
+La matrice: Selon l'intensité le carré est plus ou moins noir, si valeur infini donc obstacle alors couleur bleue 'eau'
+
+Selection point de départ et d'arrivée: Le clic gauche LMB permet de sélectionner les deux points dans la matrice signalés à l'écran
+par deux ronds rouge, on ne peut pas sélectionner des valeurs obstacles
+
+Désélection: Le clic droit de la souris permet désélectionner les points de départ et d'arrivée
+
+Ajout d'obstacles: Sans passer par les paramètres on peut rajouter directement des obstacles avec le bouton du milieu de la souris MMB
+(seulement si aucun point n'est sélectionné)
+Quitter: Quitte le programme
+
+Chemin: Début de l'algorithme de recherche de chemin, Inactif si les deux points ne sont pas sélectionnés
+    """
 
 
-def init():
-    global quadric, pos
-    # clear color to black
-    glClearColor(0.0, 0.0, 0.0, 0.0)
-
-    glEnable(GL_DEPTH_TEST)
-    glDepthFunc(GL_LESS)
-
-    glEnable(GL_LIGHT0)
-
-    glLightfv(GL_LIGHT0, GL_POSITION, pos)
-
-    glEnable(GL_LIGHTING)
-    glShadeModel(GL_FLAT)
-
-    quadric = gluNewQuadric()
-
-    gluQuadricDrawStyle(quadric, GLU_FILL)
+def maj_min_max():
+    """
+    Mise à jour des valeurs minimales et maximales de la matrice
+    """
+    global min_value, max_value
+    min_value, max_value = min_max_matrix(matrice)
+    get_info_matrice(min_value, max_value, matrice)
 
 
-def display():
-    global cpt_x, cpt_y, cpt_z, cpt, anim, anim_bouton
-    global eye_angle_x, eye_angle_y, eye_angle_z, center, up_vec
-    global trajet_open
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+# Fonction pour les boutons
+def ouvrir_matrice():
+    """
+    Ouvre une matrice à partir d'un fichier d'une matrice
+    """
+    global matrice
+    if (path := filedialog.askopenfilename()):
+        matrice = lire_matrice(path)
+        actu_matrice()
 
-    glPushMatrix()
 
-    # Modelisation du repere othonorme
-    # centre
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, [1, 1, 1, 1.0])
-    gluSphere(quadric, 0.2, 20, 16)
+def sauver_matrice():
+    """
+    Sauvegarde la matrice courante
+    """
 
-    # Axe z Bleu
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, [0, 0, 1, 1.0])
-    gluCylinder(quadric, 0.1, 0.1, 1000, 20, 16)
+    if((path := filedialog.asksaveasfilename())):
+        ecrire_matrice(matrice, path)
 
-    # Axe y Vert
-    glPushMatrix()
-    glRotatef(90, 0, 1, 0)
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, [0, 1, 0, 1.0])
-    gluCylinder(quadric, 0.1, 0.1, 1000, 20, 16)
-    glPopMatrix()
 
-    # Axe x Rouge
-    glPushMatrix()
-    glRotatef(-90, 1, 0, 0)
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, [1, 0, 0, 1.0])
-    gluCylinder(quadric, 0.1, 0.1, 1000, 20, 16)
-    glPopMatrix()
+def modif_parametre():
+    """
+    Modifie les paramètres de generation de matrice
+    et en génère une nouvelle
+    """
+    # Initialisation des valeurs des tirettes aux paramètres globaux et du choix de l'algo
+    # de recherche du plus court chemin
+    win_2 = tk.Toplevel(win)
+    n = tk.IntVar(win_2, taille_matrice)
+    born = tk.IntVar(win_2, borne)
+    flat = tk.IntVar(win_2, flat_niv)
+    obs = tk.IntVar(win_2, obstacle_bool)
+    cran = tk.IntVar(win_2, seuil_obstacle)
+    win_2.title("Generation de matrice")
+    # Parametre pour la generation de la matrice
+    tk.Scale(win_2, label="Taille de la matrice", from_=5, to_=50,
+             variable=n, length="10c", orient="horizontal").pack(side="top")
+    tk.Scale(win_2, label="Borne supérieur des valeurs", from_=2, to_=1000,
+             variable=born, length="10c", orient="horizontal").pack(side="top")
+    tk.Scale(win_2, label="Taux d’aplatissement des valeurs", from_=0, to_=10,
+             variable=flat, length="10c", orient="horizontal").pack(side="top")
+    tk.Checkbutton(win_2, text="Présence d'obstacles",
+                   variable=obs).pack(side="top")
+    tk.Scale(win_2, label="Seuil des d’obstacles", from_=0, to_=50,
+             variable=cran, length="10c", orient="horizontal").pack(side="top")
+    # Choix Algo chemin
+    radio_frame = tk.Frame(win_2)
+    radio_frame.pack(side="top")
+    tk.Radiobutton(radio_frame, text="Dijkstra", indicatoron=0,
+                   variable=algo, value=0).pack(side="left")
+    tk.Radiobutton(radio_frame, text="A*", indicatoron=0,
+                   variable=algo, value=1).pack(side="left")
 
-    # creation de la map
-    grid_map(matrice_map)
-    # creation normals pour les polygon plat
-    if normals != 0:
-        for j in range(0, n):
-            ligne = []
-            for i in range(0, n):
-                print("toto", i)
-                if (j % 2) >= 1 and (i % 2) >= 1:
+    # Génération de la matrice avec les nouveaux paramètres entrés
+    tk.Button(win_2, text="Valider", command=lambda: nouvelle_matrice_modifie(n.get(), born.get(
+    ), flat.get(), bool(obs.get()), cran.get(), algo.get(), win_2)).pack(side="bottom")
 
-                    ligne.append((j, i, matrice_map[i, j]))
-                # pente x
-                elif (i % 2) >= 1:
-                    ligne.append((j, i, matrice_map[i, j]))
 
-                    # penty
-                elif (j % 2) >= 1:
+def nouvelle_matrice_modifie(taille: int, borne_sup: int, flatness: int, a_obstacle: bool, cran_obstacle: int, alg: int, win: tk.Toplevel = None,):
+    """
+    Mise à jour des paramètres globaux et génération d'une nouvelle matrice
+    """
+    global matrice, taille_matrice, borne, flat_niv, obstacle_bool, seuil_obstacle, algo_chemin
+    # Generation de la nouvelle matrice
+    algo_chemin = alg
+    # Si aucun paramètre de creation de matrice n'a été changé alors on ne génère pas de nouvelle matrice
+    if(taille_matrice, borne, flat_niv, obstacle_bool, seuil_obstacle) != (taille, borne_sup, flatness, a_obstacle, cran_obstacle):
+        matrice = generation_matrice_terrain(
+            taille, 1, borne_sup, flatness, a_obstacle, cran_obstacle)
+        # print(matrice)
+        # Mise à jour des paramètres globaux
+        taille_matrice, borne, flat_niv, obstacle_bool, seuil_obstacle = taille, borne_sup, flatness, a_obstacle, cran_obstacle
+        #print(taille,  borne_sup, flatness,a_obstacle, cran_obstacle)
+        # Destruction de la boîte de modification de matrice
+        actu_matrice()
+    if(win):
+        win.destroy()
 
-                    ligne.append((j, i, matrice_map[i, j]))
 
-                else:
-                    ligne.append((j, i, matrice_map[i, j]))
-            normal.append(ligne)
-        #########################################
-        # création des normes et affichage
-        glMaterialfv(GL_FRONT_AND_BACK,
-                     GL_AMBIENT_AND_DIFFUSE, [1, 0, 0, 1.0])
-        glBegin(GL_LINES)
-        for j in range(10):
+def nouvelle_matrice():
+    """
+    Génération d'une nouvelle matrice
+    """
+    global matrice
+    matrice = generation_matrice_terrain(
+        taille_matrice, 1, borne, flat_niv, obstacle_bool, seuil_obstacle)
+    actu_matrice()
 
-            for i in range(10):
-                # poly plat
 
-                glVertex3f(normal[j][i][0]*2+0.5, normal[j]
-                           [i][1]*2+0.5, normal[j][i][2])
-                glVertex3f(normal[j][i][0]*2+0.5, normal[j]
-                           [i][1]*2+0.5, normal[j][i][2]+3)
-                if j != 9 and i != 9:
-                    # POLY PENTE y
-                    pente_x = matrice_map[j, i+1]-matrice_map[j, i]
-                    point_x = matrice_map[j, i]+(pente_x/2)
-                    # point millieuxx
-                    point_tx = (i*2+1+i*2+2+i*2+1)/3
-                    point_ty = (j*2+1+j*2+1+j*2+2)/3
-                    point_tz = (matrice_map[j, i+1]+matrice_map[j, i] +
-                                matrice_map[j+1, i])/3
-                    # produit vec pour triangle  gauche
-                    vec_a = [1, 0, matrice_map[j, i+1]-matrice_map[j, i]]
-                    vec_b = [0, 1, matrice_map[j+1, i]-matrice_map[j, i]]
-                    a = vec_a[1]*vec_b[2]-vec_a[2]*vec_b[1]
-                    b = -vec_a[0]*vec_b[2]-vec_a[2]*vec_b[0]
-                    c = vec_a[0]*vec_b[1]-vec_a[1]*vec_b[0]
-                    vec_c = [a, b, c]
+def actu_matrice():
+    """
+    Actualise la matrice afficher à l'écran
+    """
+    print(matrice)
+    global depart, arrivee, depart_id, arrivee_id, cote
+    depart, arrivee, depart_id, arrivee_id = None, None, None, None
+    maj_min_max()
+    # Taille des carrés en fonction de la taille de la matrice
+    l, c = matrice.shape
+    cote = 500/l
+    Canva.delete(tk.ALL)
+    ht = cote*l
+    wt = cote*l
+    Canva.config(width=wt, height=ht)
+    maj_min_max()
+    for i in range(l):
+        for j in range(c):
+            #couleur = get_color(matrice[i,j])
+            if(flag := (val := matrice[i, j]) == np.inf):
+                couleur = "#0033CC"
+            else:
+                couleur = green_to_brown_gradient_maping(val)
+    # Les obstacles et valeurs finis ne sont pas traités de la même manière
+            if(flag):
+                Canva.create_rectangle(
+                    i*cote, j*cote, i*cote+cote, j*cote+cote, fill=couleur, tags=("inf", str((i, j))))
+            else:
+                Canva.create_rectangle(
+                    i*cote, j*cote, i*cote+cote, j*cote+cote, fill=couleur, tags=("point", str((i, j))))
+    bouton_chemin.config(state="disabled")
+    bouton_animation.config(state="disabled")
 
-                    glVertex3f(point_tx, point_ty, point_tz)
-                    glVertex3f(point_tx+vec_c[0], point_ty+vec_c[1],
-                               point_tz+vec_c[2])
+# Fonction Selection de points
 
-                    if i >= 1:
-                        point_tx = (i*2+i*2+i*2-1)/3
-                        point_ty = (j*2+2+j*2+1+j*2+1)/3
 
-                        point_tz = (matrice_map[j+1, i]+matrice_map[j, i] +
-                                    matrice_map[j+1, i-1])/3
+def print_tags(event=None):
+    """
+    Imprime les tags du widget courant
+    """
+    id = Canva.find_withtag("current")
+    tags = Canva.gettags(id)
+    print(tags)
 
-                        vec_a = [0, 1, matrice_map[j+1, i]-matrice_map[j, i]]
-                        vec_b = [-1, -1, matrice_map[j+1, i-1]-matrice_map[j, i]]
 
-                        a = vec_a[1]*vec_b[2]-vec_a[2]*vec_b[1]
-                        b = -vec_a[0]*vec_b[2]-vec_a[2]*vec_b[0]
-                        c = vec_a[0]*vec_b[1]-vec_a[1]*vec_b[0]
-                        vec_c = [a, b, c]
+def selec_depart(event=None):
+    """
+    Sélectionne le point de départ
+    """
+    global depart_id, depart
+    id = Canva.find_withtag("current")
+    tags = Canva.gettags(id)
+    coords = tags[1].split(',')
+    # Car coords ressemble à "(x, y)"
+    i = int(coords[0][1:])
+    j = int(coords[1][1:-1])
+    depart = (i, j)
+    # Calcul de points pour créer un cercle au centre du carré
+    xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
+    depart_id = Canva.create_oval(
+        *xy_xy, fill="red", tags=("depart", str((i, j))))
+    Canva.tag_unbind("point", "<1>")
+    Canva.tag_bind("point", "<1>", selec_arrivee)
+    Canva.tag_unbind("point", "<2>")
 
-                        glVertex3f(point_tx, point_ty, point_tz)
-                        glVertex3f(point_tx+vec_c[0], point_ty+vec_c[1],
-                                   point_tz+vec_c[2])
-                    if point_x == matrice_map[j, i]:
-                        # if c'est plat
-                        glVertex3f(normal[j][i][1]*2+1.5,
-                                   normal[j][i][0]*2+0.5, point_x)
-                        glVertex3f(normal[j][i][1]*2+1.5,
-                                   normal[j][i][0]*2+0.5,  point_x+3)
 
-                    else:
-                        # pente qui augmente
-                        pente_xbis = -1/pente_x
+def selec_arrivee(event=None):
+    """
+    Sélectionne le point d'arrivée
+    """
+    global arrivee_id, arrivee
+    id = Canva.find_withtag("current")
+    tags = Canva.gettags(id)
+    coords = tags[1].split(',')
+    # Car coords ressemble à "(x, y)"
+    i = int(coords[0][1:])
+    j = int(coords[1][1:-1])
+    if(depart != (i, j)):
+        arrivee = (i, j)
+        # Calcul de points pour créer un cercle au centre du carré
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.25*cote)
+        arrivee_id = Canva.create_oval(
+            *xy_xy, fill="red", tags=("arrivee", str((i, j))))
+        Canva.tag_unbind("point", "<1>")
+        bouton_chemin.config(state="normal")
 
-                        if pente_x < 0:
-                            # x,y,z
-                            # pente_x
-                            point_xbis = point_x+pente_xbis
 
-                            glVertex3f(normal[j][i][1]*2+1.5, normal[j]
-                                       [i][0]*2+0.5, point_x)
-                            glVertex3f(normal[j][i][1]*2+2.5, normal[j]
-                                       [i][0]*2+0.5,  point_xbis)
-                            # calcul
-                        else:
+def deselec(event=None):
+    """
+    Désélectionne le point de départ et le point d'arrivée
+    """
+    global depart, arrivee, depart_id, arrivee_id
+    depart = None
+    arrivee = None
+    if(depart_id):
+        Canva.delete(depart_id)
+    if(arrivee_id):
+        Canva.delete(arrivee_id)
+    Canva.delete("dij")
+    Canva.delete("a_")
 
-                            point_xbis = point_x + (-1)*pente_xbis
-                            glVertex3f(normal[j][i][1]*2+1.5,
-                                       normal[j][i][0]*2+0.5, point_x)
-                            glVertex3f(normal[j][i][1]*2+0.5,
-                                       normal[j][i][0]*2+0.5,  point_xbis)
+    depart_id = None
+    arrivee_id = None
+    Canva.tag_bind("point", "<1>", selec_depart)
+    Canva.tag_bind("point", "<2>", ajout_obstacle)
+    bouton_chemin.config(state="disabled")
+    bouton_animation.config(state="disabled")
 
-                    pente_y = matrice_map[j+1, i]-matrice_map[j, i]
-                    point_y = matrice_map[j, i]+(pente_y/2)
-                    # POLY PENTE y
-                    if point_y == matrice_map[j, i]:
-                        # if c'est plat
-                        glVertex3f(normal[j][i][1]*2+0.5,
-                                   normal[j][i][0]*2+1.5, point_y)
-                        glVertex3f(normal[j][i][1]*2+0.5,
-                                   normal[j][i][0]*2+1.5,  point_y+3)
-                    else:
 
-                        pente_ybis = -1/pente_y
-                        # si la pente monte
-                        if pente_y < 0:
+def ajout_obstacle(event=None):
+    """
+    Ajout d'obstacle directement sur le terrain
+    """
+    global matrice
+    id = Canva.find_withtag("current")
+    tags = Canva.gettags(id)
+    coords = tags[1].split(',')
+    # Car coords ressemble à "(x, y)""
+    i = int(coords[0][1:])
+    j = int(coords[1][1:-1])
+    Canva.delete(id)
+    Canva.create_rectangle(i*cote, j*cote, i*cote+cote, j*cote+cote,
+                           fill=rgb_to_hex(*(50, 50, 255)), tags=("inf", str((i, j))))
+    matrice[i, j] = np.inf
 
-                            point_ybis = point_y+pente_ybis
 
-                            glVertex3f(normal[j][i][1]*2+0.5,
-                                       normal[j][i][0]*2+1.5, point_y)
-                            glVertex3f(normal[j][i][1]*2+0.5,
-                                       normal[j][i][0]*2+2.5,  point_ybis)
-                        else:
-                            point_ybis = point_y + (-1)*pente_ybis
-                            glVertex3f(normal[j][i][1]*2+0.5,
-                                       normal[j][i][0]*2+1.5, point_y)
-                            glVertex3f(normal[j][i][1]*2+0.5,
-                                       normal[j][i][0]*2+0.5,  point_ybis)
+def afficher_aide(event=None):
+    """
+    Affiche l'aide
+    """
+    aide_win = tk.Toplevel(win)
+    aide_win.title("Aide")
+    text_frame = tk.Frame(aide_win)
+    frame_button = tk.Frame(aide_win)
+    texte = tk.Text(text_frame)
+    texte.insert(tk.END, texte_aide)
+    texte.pack(side="top", expand=True, fill="both")
+    text_frame.pack(fill="both", expand=True)
+    frame_button.pack(side="bottom", fill=tk.Y)
+    tk.Button(frame_button, text="Ok", command=aide_win.destroy)
 
-        glEnd()
-    #  animation
-    if anim == True:
-        animation(cpt_x, cpt_y, matrice_map)
+
+def chemin(event=None):
+    """
+    Affiche les point de controle pour bezier calculés
+    par l'algorithme du plus court chemin
+    """
+    global trajet_dijkstra, id_dijkstra, id_a_star, trajet_a_star
+    algo_chemin = algo.get()
+    trajet_dijkstra = dijkstra(matrice, depart, arrivee)
+    trajet_a_star = a_star(matrice, depart, arrivee)
+    # Traçage des chemins en caché
+    for point in range(1, len(trajet_dijkstra)-1):
+        i, j = trajet_dijkstra[point]
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
+        id_dijkstra.append(Canva.create_oval(
+            *xy_xy, fill="blue", state="hidden", tags=("dij", str((i, j)))))
+    for point in range(1, len(trajet_a_star)-1):
+        i, j = trajet_a_star[point]
+        xy_xy = circle_to_oval(i*cote+cote/2, j*cote+cote/2, 0.125*cote)
+        id_a_star.append(Canva.create_oval(*xy_xy, fill="purple",
+                         state="hidden", tags=("a_", str((i, j)))))
+    # On affiche le chemin sélectionné
+    if(algo_chemin):
+        print("A*")
+        Canva.itemconfig("a_", state='normal')
+    else:
+        print("Dijkstra")
+        Canva.itemconfig("dij", state='normal')
+
+    bouton_chemin.config(state="disabled")
+    bouton_animation.config(state="normal")
+    bouton_opengl.config(state="normal")
+
+
+def cacher_chemin(event=None):
+    """
+    Cache le chemin qui n'est pas sélectionné
+    """
+    if(algo.get()):
+        Canva.itemconfig("a_", state='normal')
+        Canva.itemconfig("dij", state='hidden')
+        print("A*")
 
     else:
-
-        cpt_x = depart_open[0]
-        cpt_y = depart_open[1]
-        animation(cpt_x, cpt_y, matrice_map)
-
-    glPopMatrix()
-
-    glutSwapBuffers()
-
-    glLoadIdentity()
-
-    gluLookAt(*eye, *center, *up_vec)
-    glRotatef(eye_angle_y, 0.0, 1.0, 0.0)
-    glRotatef(eye_angle_x, 1.0, 0, 0)
-    glRotatef(eye_angle_z, 0, 0, 1.0)
-    anim_bouton = False
+        Canva.itemconfig("dij", state='normal')
+        Canva.itemconfig("a_", state='hidden')
+        print("Dijkstra")
 
 
-def bary_bezier_opengl(x0, y0, x1, y1, x2, y2, x3, y3, t):
+def animation_2D(event=None):
     """
-    Calcule les barycentres des 4 points de controles
-    avec un coefficient t
+    Lance le mobile 2D sur le canvas dans tkinter
     """
-    # Generation 1
-    x0i = (1 - t) * x0 + x1 * t
-    y0i = (1 - t) * y0 + y1 * t
-    x1i = (1 - t) * x1 + x2 * t
-    y1i = (1 - t) * y1 + y2 * t
-    x2i = (1 - t) * x2 + x3 * t
-    y2i = (1 - t) * y2 + y3 * t
+    global trajet, mobile_2D
+    bouton_animation.config(state='disabled')
+    bouton_stop.config(state='normal')
+    if(algo.get()):
+        trajet = trajet_a_star
 
-    x0, y0, x1, y1, x2, y2 = x0i, y0i, x1i, y1i, x2i, y2i
-
-    # Generation 2
-    x0i = (1 - t) * x0 + x1 * t
-    y0i = (1 - t) * y0 + y1 * t
-    x1i = (1 - t) * x1 + x2 * t
-    y1i = (1 - t) * y1 + y2 * t
-
-    x0, y0, x1, y1 = x0i, y0i, x1i, y1i
-
-    # Generation 3
-    x0i = (1 - t) * x0 + x1 * t
-    y0i = (1 - t) * y0 + y1 * t
-
-    return x0i, y0i
+    else:
+        trajet = trajet_dijkstra
+    get_info(Canva, cote)
+    print(trajet)
+    mobile_2D = Chenille_2D(*trajet[0], 10, Canva, cote)
+    # Permet la destruction du mobile 2D
+    try:
+        trace_beizier(trajet, 100, mobile_2D)
+    except IndexError:
+        print("Mobile 2D détruit")
+    bouton_animation.config(state='normal')
+    bouton_stop.config(state='disabled')
 
 
-def trace_beizier_quatre_opengl(x0, y0, x1, y1, x2, y2, x3, y3, it, debut=0):
+def stop(event=None):
     """
-    Calcule les barycentres de 4 points avec un nombre d'itérations
-    la variable debut definit l'endroit où la courbe commence s'afficher
-     exemple 0.25 on commence au 2ème point de controle
+    Détruit le mobile 2D pour mettre fin à l'animation
     """
-    global matrice_map, cpt_x, cpt_y, center, up_vec
-    u = debut
-
-    pas = 1/100
-
-    #xi, yi = bary_bezier(x0,y0,x1,y1,x2,y2,x3,y3,u)
-    while (u <= 1):
-        xi, yi = bary_bezier_opengl(x0, y0, x1, y1, x2, y2, x3, y3, u)
-
-        sleep(0.01)
-        cpt_x = xi
-        cpt_y = yi
-        # position regarde
-        center[0] = cpt_x*2
-
-        center[2] = cpt_y*2
-
-        eye[2] = 20+cpt_x
-        eye[0] = 10+cpt_y
-        eye[1] = 10
-        print("eye", eye)
-        display()
-
-        u += pas
+    global mobile_2D
+    mobile_2D.delete()
+    bouton_stop.config(state='disabled')
+    bouton_animation.config(state='normal')
 
 
-def trace_beizier_opengl(liste_points, it):
-    """
-    Trace une coube de bézier sur OpenGL, prend en paramètre
-    une liste de points
-    """
+def opengl_tk(event=None):
+    global matrice, trajet_a_star, trajet_dijkstra
+    if(algo.get()):
+        trajet = trajet_a_star
 
-    n = len(liste_points)
-    if(n < 4):
-        print("Pas assez de points")
-        return -1
+    else:
+        trajet = trajet_dijkstra
 
-    #mobile_2D = Chenille_2D(*liste_points[0], 7, Canva, cote)
-    n_hors = (n - 4) % 3  # n_hors donne le nombre de points qui ne sont
-    # pas dans un quadruplet
-
-    n_int = n-n_hors-1
-    # On trace la courbe pour le cas général
-    # for i in range(0, n_int, 3):
-    i = 0
-    while(i < n_int):
-        trace_beizier_quatre_opengl(*liste_points[i], *liste_points[i+1],
-                                    *liste_points[i+2], *liste_points[i+3], it)
-        i += 3
-
-    # On vérifie que l'on ne se trouve pas dans le cas particulier où
-    # il n'y que 4 points dans la liste
-    if(n != 4):
-
-        # Il y a 2 points hors des quadruplets
-        if n_hors == 2:
-            trace_beizier_quatre_opengl(*liste_points[-4], *liste_points[-3],
-                                        *liste_points[-2], *liste_points[-1],
-                                        it, 0.25)
-
-        # Il y a 1 point hors des quadruplets
-        elif n_hors == 1:
-            trace_beizier_quatre_opengl(*liste_points[-4], *liste_points[-3],
-                                        *liste_points[-2], *liste_points[-1],
-                                        it, 0.75)
-        # Trace sur OpenGL le dernier point de la courbe
+    opengl(matrice, depart, arrivee, trajet)
 
 
-def reshape(width, height):
+    # Initialisation des fenêtres
+win = tk.Tk()
+win.title("Plan du terrain")
+top_frame = tk.Frame(win)
 
-    glViewport(0, 0, width, height)
-    glMatrixMode(GL_PROJECTION)
-    glLoadIdentity()
-    gluPerspective(45, width/height, 1, 500)
-    glMatrixMode(GL_MODELVIEW)
-    glLoadIdentity()
-    gluLookAt(*eye, *center, *up_vec)
+# Si 0 Dijsktra si 1 A*
+algo = tk.IntVar(win, 0)
+# Chargement d'une matrice à partir d'un fichier texte
+bouton_charger = tk.Button(
+    top_frame, text="Ouvrir", width=20, command=ouvrir_matrice)
+# Sauvegarde de la matrice courante
+bouton_sauver = tk.Button(
+    top_frame, text="Sauver", width=20, command=sauver_matrice)
+# Modification des paramètres de la matrice
+bouton_modif = tk.Button(
+    top_frame, text="Paramètres", width=20, command=modif_parametre)
+# Génération d'une nouvelle matrice avec les paramètres actuels
+bouton_gen = tk.Button(
+    top_frame, text="Générer", width=20, command=nouvelle_matrice)
 
+# Aide
+aide = tk.Button(top_frame, text="Aide", width=20, command=afficher_aide)
+Canva = tk.Canvas(win)
 
-def keyboard(key, x, y):
-    global DISPLAY_GRID, eye_angle_x, eye_angle_y, eye_angle_z, center, up_vec
-    global pos, anim, anim_bouton
-    global cpt_translate, normals
-    global chemin
-    # Zoom deplacement de la cam era selon l'axe z
-    if key == b'z':
-        eye[2] -= 1
-        anim_bouton = True
-    elif key == b's':
-        eye[2] += 1
-        anim_bouton = True
-    # #deplacement de la camera selon l'axe y
-    elif key == b'q':
-        cpt_translate += 1
-        glTranslated(0, cpt_translate, 0)
-        anim_bouton = True
-    elif key == b'd':
-        cpt_translate -= 1
-        glTranslated(0, cpt_translate, 0)
-        anim_bouton = True
-    # deplacement de la camera selon l'axe x
-    elif key == b'w':
-        anim_bouton = True
-        eye[0] += 1
-    elif key == b'x':
-        eye[0] -= 1
-        anim_bouton = True
-    # Deplacement du centre sur l'axe x
-    elif key == b'f':
-        center[0] -= 1
-        anim_bouton = True
-    elif key == b'h':
-        center[0] += 1
-        anim_bouton = True
-    # Rotation sur l'axe z
-    elif key == b'Q':
+bottom_frame = tk.Frame(win)
+# Lancement de la recherche de chemin
+bouton_chemin = tk.Button(bottom_frame, text="Chemin",
+                          state="disabled", width=20, height=5, command=chemin)
+# Quitter
+bouton_quitter = tk.Button(bottom_frame, text="Quitter",
+                           width=20, height=5, command=lambda: exit(0))
+# Lancement du mobile 2D
+bouton_animation = tk.Button(bottom_frame, text="Animation 2D",
+                             state="disabled", width=20, height=5, command=animation_2D)
+# Bouton Stop
+bouton_stop = tk.Button(bottom_frame, text="Stop",
+                        state="disabled", width=20, height=5, command=stop)
+# Bouton opengl
+bouton_opengl = tk.Button(bottom_frame, text="Animation 3D",
+                          state="disabled", width=20, height=5, command=opengl_tk)
 
-        eye_angle_z = (eye_angle_z + 5) % 360
-        anim_bouton = True
-    elif key == b'D':
-        eye_angle_z = (eye_angle_z - 5) % 360
-        anim_bouton = True
-    # Rotation sur l'axe y
-    elif key == b'Z':
-        eye_angle_y = (eye_angle_y + 5) % 360
-        anim_bouton = True
-    elif key == b'S':
-        eye_angle_y = (eye_angle_y - 5) % 360
-        anim_bouton = True
+# Radio button
+radio_frame = tk.Frame(bottom_frame, width=20)
+tk.Radiobutton(radio_frame, padx=10, pady=30, text="Dijkstra", indicatoron=0,
+               command=cacher_chemin, variable=algo, value=0).pack(side="left")
+tk.Radiobutton(radio_frame, padx=10, pady=30, text="A*", indicatoron=0,
+               variable=algo, command=cacher_chemin, value=1).pack(side="left")
+# Disposition des Widgets
+bouton_charger.pack(side="left", expand=True)
+bouton_sauver.pack(side="left", expand=True)
+bouton_modif.pack(side="left", expand=True)
+bouton_gen.pack(side="left", expand=True)
+aide.pack(side="right", expand=True)
+top_frame.pack(side="top", fill=tk.X)
+Canva.pack(side="top")
 
-    # Rotation sur l'axe x
-    elif key == b'W':
-        eye_angle_x = (eye_angle_x + 5) % 360
-        anim_bouton = True
-    elif key == b'X':
-        eye_angle_x = (eye_angle_x - 5) % 360
-
-        anim_bouton = True
-    elif key == b'a':
-        anim = True
-        it = 100
-        trace_beizier_opengl(chemin, it)
-    elif key in (b'n', b'N'):
-        normals = 1 - normals
-    elif key == b'\033':
-        glutDestroyWindow(WIN)
-        sys.exit(0)
-    print(eye_angle_x, eye_angle_y, eye_angle_z)
-    glutPostRedisplay()  # indispensable en Python
+bouton_chemin.pack(side="right")
+bouton_animation.pack(side="right")
+bouton_stop.pack(side="right")
+bouton_opengl.pack(side="right")
+radio_frame.pack(side="right")
+bouton_quitter.pack(side="left")
+bottom_frame.pack(side="bottom", fill=tk.X)
 
 
-###############################################################
-# MAIN
+# Bindings
+Canva.tag_bind("point", "<1>", selec_depart)
+Canva.bind_all("<3>", deselec)
+Canva.tag_bind("point", "<2>", ajout_obstacle)
+actu_matrice()
 
-def opengl(matrice, depart, arrivee, trajet):
-    global matrice_map, depart_open, arrivee_open, chemin
-    matrice_map = matrice
-    depart_open = depart
+tk.mainloop()
 
-    arrivee_open = arrivee
-    chemin = trajet
-    # initialization GLUT library
-    glutInit()
-    # initialization display mode RGBA mode and double buffered window
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA | GLUT_DEPTH)
-
-    # creation of top-level window
-    WIN2 = glutCreateWindow('projet')
-
-    glutReshapeWindow(800, 800)
-
-    glutReshapeFunc(reshape)
-    glutDisplayFunc(display)
-    glutKeyboardFunc(keyboard)
-
-    init()
-    glutMainLoop()
+exit(0)
