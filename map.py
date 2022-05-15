@@ -4,6 +4,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from random import randint
 from typing import Union
+from utils import normalisation
 import numpy as np
 
 
@@ -181,22 +182,26 @@ def gestion_poly(matrice):
         for j in range(n):
             if j >= 1:
                 ecartx = 2
-            col = matrice[j, i]
+
+            val = matrice[i, j]
+            couleur = 1 - normalisation(val)
+
             glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
-                         [col*0.1, col*0.1, col*0.1, 1.0])
+                         [0, couleur, 0, 1.0])
+
             glBegin(GL_POLYGON)
 
-            glVertex3f(j*ecartx, i*ecarty, matrice[i, j])
-            glVertex3f(j*ecartx, i*ecarty+1, matrice[i, j])
+            glVertex3f(j*ecartx, i*ecarty, val)
+            glVertex3f(j*ecartx, i*ecarty+1, val)
 
-            glVertex3f(j*ecartx, i*ecarty+1, matrice[i, j])
-            glVertex3f(j*ecartx+1, i*ecarty+1, matrice[i, j])
+            glVertex3f(j*ecartx, i*ecarty+1, val)
+            glVertex3f(j*ecartx+1, i*ecarty+1, val)
 
-            glVertex3f(j*ecartx+1, i*ecarty+1, matrice[i, j])
-            glVertex3f(j*ecartx+1, i*ecarty, matrice[i, j])
+            glVertex3f(j*ecartx+1, i*ecarty+1, val)
+            glVertex3f(j*ecartx+1, i*ecarty, val)
 
-            glVertex3f(j*ecartx+1, i*ecarty, matrice[i, j])
-            glVertex3f(j*ecartx, i*ecarty, matrice[i, j])
+            glVertex3f(j*ecartx+1, i*ecarty, val)
+            glVertex3f(j*ecartx, i*ecarty, val)
             glEnd()
 
 
@@ -222,9 +227,11 @@ def gestion_poly_trx(matrice):
             if j == n-1:
                 break
 
-            col = matrice[j, i]
-            glMaterialfv(GL_FRONT_AND_BACK,
-                         GL_AMBIENT_AND_DIFFUSE, [0, 0, 1, 1.0])
+            val = (matrice[i, j]+matrice[i, j+1])/2
+            couleur = 1 - normalisation(val)
+
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+                         [0, couleur, 0, 1.0])
             glBegin(GL_POLYGON)
             # 00 01
             glVertex3f(j*ecartx+1, i*ecarty, matrice[i, j])
@@ -260,9 +267,11 @@ def gestion_poly_try(matrice):
             if j == n:
                 break
 
-            col = matrice[j, i]
-            glMaterialfv(GL_FRONT_AND_BACK,
-                         GL_AMBIENT_AND_DIFFUSE, [1, 0, 0, 1.0])
+            val = (matrice[i+1, j]+matrice[i, j])/2
+            couleur = 1 - normalisation(val)
+
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+                         [0, couleur, 0, 1.0])
             glBegin(GL_POLYGON)
             # 00 01
             glVertex3f(j*ecartx, i*ecarty+1, matrice[i, j])
@@ -298,9 +307,11 @@ def gestion_poly_tr_trigd(matrice):
             if j == n-1:
                 break
 
-            col = matrice[j, i]
-            glMaterialfv(GL_FRONT_AND_BACK,
-                         GL_AMBIENT_AND_DIFFUSE, [1, 1, 0, 1.0])
+            val = (matrice[i+1, j]+matrice[i, j]+matrice[i, j+1])/3
+            couleur = 1 - normalisation(val)
+
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+                         [0, couleur, 0, 1.0])
             glBegin(GL_POLYGON)
             # 00 01
             glVertex3f(j*ecartx+1, i*ecarty+1, matrice[i, j])
@@ -313,8 +324,11 @@ def gestion_poly_tr_trigd(matrice):
             glVertex3f(j*ecartx+1, i*ecarty+1, matrice[i, j])
 
             glEnd()
-            glMaterialfv(GL_FRONT_AND_BACK,
-                         GL_AMBIENT_AND_DIFFUSE, [0, 1, 1, 1.0])
+            val = (matrice[i+1, j]+matrice[i+1, j+1]+matrice[i, j+1])/3
+            couleur = 1 - normalisation(val)
+
+            glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+                         [0, couleur, 0, 1.0])
             glBegin(GL_POLYGON)
             # 00 01
             glVertex3f(j*ecartx+2, i*ecarty+2, matrice[i+1, j+1])

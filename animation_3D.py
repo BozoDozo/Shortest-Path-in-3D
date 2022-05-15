@@ -65,5 +65,6 @@ def animation(cpt_x, cpt_y, matrice_map):
 
     glTranslated(0+coord_y_open, 0+coord_x_open,
                  matrice_map[int(cpt_x), int(cpt_y)]+0.5+pas)
-
+    glMaterialfv(GL_FRONT_AND_BACK,
+                 GL_AMBIENT_AND_DIFFUSE, [0, 0, 1,     1.0])
     glutSolidSphere(0.5, 5, 5)

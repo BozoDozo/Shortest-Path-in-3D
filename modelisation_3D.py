@@ -21,7 +21,7 @@ cpt_translate = 0
 x_pos, y_pos, z_pos = 0, 0, 0
 
 eye_angle_x, eye_angle_y, eye_angle_z = 315, 50, 210
-eye = [0, 0, 50]
+eye = [0, 10, 50]
 center = [10, 0, 10]
 up_vec = [1, 1, 0]
 
@@ -48,6 +48,8 @@ arrivee_open = None
 n = 10
 matrice_map = []
 trajet_open = []
+cpt = 0
+flag = True
 
 
 def init():
@@ -73,7 +75,7 @@ def init():
 def display():
     global cpt_x, cpt_y, cpt_z, cpt, anim, anim_bouton
     global eye_angle_x, eye_angle_y, eye_angle_z, center, up_vec
-    global trajet_open
+    global trajet_open, flag
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     glPushMatrix()
@@ -101,10 +103,12 @@ def display():
     gluCylinder(quadric, 0.1, 0.1, 1000, 20, 16)
     glPopMatrix()
 
-    # creation de la map
+    # creation de la ma
+
     grid_map(matrice_map)
+    flag = False
     # creation normals pour les polygon plat
-    if normals != 0:
+    if normals:
         for j in range(0, n):
             ligne = []
             for i in range(0, n):
