@@ -66,6 +66,12 @@ Ajout d'obstacles: Sans passer par les paramètres on peut rajouter directement 
 Quitter: Quitte le programme
 
 Chemin: Début de l'algorithme de recherche de chemin, Inactif si les deux points ne sont pas sélectionnés
+
+Animation 2D: Permet le déplacement du mobile en 2D
+
+Stop: Permet d'arrêter l'animation 2D
+
+Animation 3D: Démarre OpenGL avec le terrain en 3D, ferme le menu principal, démarrage de l'animation avec la touche 'a'
     """
 
 
@@ -175,6 +181,7 @@ def actu_matrice():
     global depart, arrivee, depart_id, arrivee_id, cote
     depart, arrivee, depart_id, arrivee_id = None, None, None, None
     maj_min_max()
+    deselec()
     # Taille des carrés en fonction de la taille de la matrice
     l, c = matrice.shape
     cote = 500/l
@@ -392,6 +399,9 @@ def stop(event=None):
 
 
 def opengl_tk(event=None):
+    """
+    Affiche la modélisation 3D
+    """
     global matrice, trajet_a_star, trajet_dijkstra
     if(algo.get()):
         trajet = trajet_a_star
@@ -399,6 +409,7 @@ def opengl_tk(event=None):
     else:
         trajet = trajet_dijkstra
 
+    win.destroy()
     opengl(matrice, depart, arrivee, trajet)
 
 
@@ -440,7 +451,7 @@ bouton_animation = tk.Button(bottom_frame, text="Animation 2D",
 bouton_stop = tk.Button(bottom_frame, text="Stop",
                         state="disabled", width=20, height=5, command=stop)
 # Bouton opengl
-bouton_opengl = tk.Button(bottom_frame, text="Animation 3D",
+bouton_opengl = tk.Button(bottom_frame, text="Animation 3D\n démarrage avec 'a'",
                           state="disabled", width=20, height=5, command=opengl_tk)
 
 # Radio button
